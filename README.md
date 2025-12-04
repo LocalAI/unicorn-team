@@ -174,6 +174,7 @@ pytest tests/ -v
 ## Skills Matrix
 
 ```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#1f2937', 'primaryTextColor': '#ffffff', 'primaryBorderColor': '#6366f1', 'lineColor': '#8b5cf6', 'secondaryColor': '#374151', 'tertiaryColor': '#4b5563'}}}%%
 mindmap
   root((10X Skills))
     Meta Skills
@@ -364,7 +365,9 @@ flowchart TB
 It's not typing speed. It's not knowing more languages. It's the **invisible skills**:
 
 ```mermaid
-pie title Where 10X Developers Spend Their Time
+%%{init: {'theme': 'dark', 'themeVariables': { 'primaryTextColor': '#ffffff', 'pieStrokeColor': '#ffffff', 'pieOuterStrokeColor': '#ffffff'}}}%%
+pie showData
+    title Where 10X Developers Spend Their Time
     "Reading Code" : 40
     "Pattern Recognition" : 15
     "Debugging" : 15
