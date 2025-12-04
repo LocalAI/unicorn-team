@@ -174,29 +174,58 @@ pytest tests/ -v
 ## Skills Matrix
 
 ```mermaid
-%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#1f2937', 'primaryTextColor': '#ffffff', 'primaryBorderColor': '#6366f1', 'lineColor': '#8b5cf6', 'secondaryColor': '#374151', 'tertiaryColor': '#4b5563'}}}%%
-mindmap
-  root((10X Skills))
-    Meta Skills
-      Orchestrator
-      Self-Verification
-      Code Reading
-      Pattern Transfer
-      Estimation
-      Technical Debt
-      Language Learning
-    Domain Skills
-      Python
-      JavaScript
-      Testing
-      Security
-      DevOps
-    Agents
-      Architect
-      Developer
-      QA-Security
-      DevOps
-      Polyglot
+flowchart TB
+    subgraph root["🦄 10X SKILLS"]
+        direction TB
+        subgraph meta["META SKILLS"]
+            M1[Orchestrator]
+            M2[Self-Verification]
+            M3[Code Reading]
+            M4[Pattern Transfer]
+            M5[Estimation]
+            M6[Technical Debt]
+            M7[Language Learning]
+        end
+        subgraph domain["DOMAIN SKILLS"]
+            D1[Python]
+            D2[JavaScript]
+            D3[Testing]
+            D4[Security]
+            D5[DevOps]
+        end
+        subgraph agents["AGENTS"]
+            A1[Architect]
+            A2[Developer]
+            A3[QA-Security]
+            A4[DevOps]
+            A5[Polyglot]
+        end
+    end
+
+    style root fill:#1e1e2e,stroke:#cba6f7,stroke-width:2px,color:#ffffff
+    style meta fill:#313244,stroke:#89b4fa,stroke-width:2px,color:#ffffff
+    style domain fill:#313244,stroke:#a6e3a1,stroke-width:2px,color:#ffffff
+    style agents fill:#313244,stroke:#fab387,stroke-width:2px,color:#ffffff
+
+    style M1 fill:#45475a,stroke:#89b4fa,color:#ffffff
+    style M2 fill:#45475a,stroke:#89b4fa,color:#ffffff
+    style M3 fill:#45475a,stroke:#89b4fa,color:#ffffff
+    style M4 fill:#45475a,stroke:#89b4fa,color:#ffffff
+    style M5 fill:#45475a,stroke:#89b4fa,color:#ffffff
+    style M6 fill:#45475a,stroke:#89b4fa,color:#ffffff
+    style M7 fill:#45475a,stroke:#89b4fa,color:#ffffff
+
+    style D1 fill:#45475a,stroke:#a6e3a1,color:#ffffff
+    style D2 fill:#45475a,stroke:#a6e3a1,color:#ffffff
+    style D3 fill:#45475a,stroke:#a6e3a1,color:#ffffff
+    style D4 fill:#45475a,stroke:#a6e3a1,color:#ffffff
+    style D5 fill:#45475a,stroke:#a6e3a1,color:#ffffff
+
+    style A1 fill:#45475a,stroke:#fab387,color:#ffffff
+    style A2 fill:#45475a,stroke:#fab387,color:#ffffff
+    style A3 fill:#45475a,stroke:#fab387,color:#ffffff
+    style A4 fill:#45475a,stroke:#fab387,color:#ffffff
+    style A5 fill:#45475a,stroke:#fab387,color:#ffffff
 ```
 
 ### Meta Skills (The Hidden 80%)
