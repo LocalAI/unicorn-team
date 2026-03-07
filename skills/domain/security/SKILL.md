@@ -1,30 +1,27 @@
 ---
 name: security
-description: >
-  Security-focused development and code review expertise using defense-in-depth
-  and attacker's mindset. Use when implementing authentication/authorization,
-  handling user input, storing sensitive data, reviewing code for vulnerabilities,
-  or deploying to production. Triggers: "security review", "vulnerability",
-  "authentication", "authorization", "input validation", "XSS", "SQL injection",
-  "secrets", "OWASP", "threat model", "security scan". Covers OWASP Top 10,
-  input validation, output encoding, secrets management, and security tooling.
+description: >-
+  Guides secure development using defense-in-depth and attacker's mindset.
+  ALWAYS trigger on "security review", "vulnerability", "authentication",
+  "authorization", "input validation", "XSS", "SQL injection", "CSRF",
+  "secrets management", "OWASP", "threat model", "security scan", "path
+  traversal", "mass assignment", "privilege escalation", "security headers",
+  "bandit", "dependency audit", "hardening". Use when implementing auth,
+  handling user input, storing secrets, reviewing code for vulnerabilities,
+  or preparing for production deployment. Different from devops skill which
+  covers infrastructure; this covers application-level security patterns.
 ---
+<!-- Last reviewed: 2026-03 -->
 
 # Security: Think Like an Attacker
 
-Security is not a checklist. It's a mindset. Every feature is an attack surface. Every input is malicious until proven otherwise.
-
 ## Core Principle
 
-**Defense in Depth + Least Privilege**
-
-Layer multiple security controls. Grant minimum necessary permissions. Assume every layer can fail.
-
----
+**Defense in Depth + Least Privilege.** Layer multiple controls. Grant minimum permissions. Assume every layer can fail.
 
 ## Security Mindset
 
-### Six Critical Questions (Every Feature)
+### Six Questions (Every Feature)
 
 1. **Who can access this?** (Authentication)
 2. **Are they allowed to?** (Authorization)
@@ -33,192 +30,24 @@ Layer multiple security controls. Grant minimum necessary permissions. Assume ev
 5. **Can they break it for others?** (Denial of service)
 6. **Will we know if they do?** (Audit logging)
 
-### Think Like an Attacker
-
-**Assets:** User data, business data, system integrity, reputation
-
-**Threat Actors:** Bored teenager, disgruntled user, competitor, nation state, our bugs
-
-**Attack Vectors:** Input manipulation, auth bypass, privilege escalation, data exposure, DoS
-
-**Impact:** Data breach, financial loss, service disruption, legal liability, reputation damage
-
 ---
 
 ## OWASP Top 10 (Quick Reference)
 
-### 1. Broken Access Control
+| # | Vulnerability | Key Defense |
+|---|--------------|-------------|
+| 1 | Broken Access Control | Auth check per resource, deny by default |
+| 2 | Cryptographic Failures | Argon2/bcrypt, never MD5/SHA1 for passwords |
+| 3 | Injection (SQL, XSS, Command) | Parameterized queries, escaping, allowlists |
+| 4 | Insecure Design | Rate limiting, STRIDE threat modeling |
+| 5 | Security Misconfiguration | Debug off in prod, generic error messages |
+| 6 | Vulnerable Components | `safety check` / `npm audit` |
+| 7 | Authentication Failures | Secure cookies, crypto-random session IDs |
+| 8 | Data Integrity Failures | JSON with validation, never pickle |
+| 9 | Logging Failures | Log security events, failed auth, admin actions |
+| 10 | SSRF | URL allowlist, block internal IPs |
 
-**Bad:**
-```python
-@app.route('/user/<user_id>/profile')
-def get_profile(user_id):
-    # VULNERABLE: No authorization check
-    return jsonify(db.get_user(user_id).to_dict())
-```
-
-**Good:**
-```python
-@app.route('/user/<user_id>/profile')
-@require_auth
-def get_profile(user_id):
-    current_user = get_current_user()
-    if current_user.id != user_id and not current_user.is_admin:
-        abort(403, "Access denied")
-    return jsonify(db.get_user(user_id).safe_dict(viewer=current_user))
-```
-
-### 2. Cryptographic Failures
-
-**Bad:**
-```python
-user.password = md5(password)  # WEAK
-```
-
-**Good:**
-```python
-from argon2 import PasswordHasher
-user.password_hash = PasswordHasher().hash(password)  # STRONG
-```
-
-### 3. Injection
-
-**SQL Injection:**
-```python
-# BAD: String concatenation
-query = f"SELECT * FROM users WHERE id = {user_id}"
-
-# GOOD: Parameterized
-query = "SELECT * FROM users WHERE id = ?"
-db.execute(query, [user_id])
-```
-
-**Command Injection:**
-```python
-# BAD: shell=True with user input
-os.system(f"cat {filename}")
-
-# GOOD: List form, validated input
-if not re.match(r'^[a-zA-Z0-9_-]+\.txt$', filename):
-    abort(400)
-subprocess.run(['cat', filename], timeout=5)
-```
-
-**XSS:**
-```html
-<!-- BAD: Unescaped -->
-<div>{{ username }}</div>
-
-<!-- GOOD: Auto-escaped -->
-<div>{{ username | escape }}</div>
-```
-
-### 4. Insecure Design
-
-**Rate Limiting:**
-```python
-@limiter.limit("5 per minute")
-@app.route('/login', methods=['POST'])
-def login():
-    # Prevent brute force
-```
-
-**Threat Modeling (STRIDE):**
-- **S**poofing: Can they impersonate?
-- **T**ampering: Can they modify data?
-- **R**epudiation: Can they deny actions?
-- **I**nformation Disclosure: Can they see secrets?
-- **D**enial of Service: Can they break availability?
-- **E**levation of Privilege: Can they gain admin access?
-
-### 5. Security Misconfiguration
-
-```python
-# BAD: Debug in production
-app.run(debug=True)
-
-# GOOD: Environment-aware
-app.config['DEBUG'] = os.environ.get('ENV') != 'production'
-
-# Generic errors
-@app.errorhandler(500)
-def error(e):
-    logger.error(f"Error: {e}", exc_info=True)  # Log internally
-    return {"error": "Internal server error"}, 500  # Generic response
-```
-
-### 6. Vulnerable Components
-
-```bash
-# Scan dependencies
-pip install safety
-safety check
-
-npm audit
-npm audit fix
-```
-
-### 7. Authentication Failures
-
-```python
-import secrets
-
-# Secure session config
-app.config['SESSION_COOKIE_SECURE'] = True      # HTTPS only
-app.config['SESSION_COOKIE_HTTPONLY'] = True    # No JS access
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'   # CSRF protection
-app.config['PERMANENT_SESSION_LIFETIME'] = 3600 # Timeout
-
-# Crypto-random session IDs
-session_id = secrets.token_urlsafe(32)
-```
-
-### 8. Data Integrity Failures
-
-```python
-# BAD: Pickle (arbitrary code execution)
-data = pickle.loads(request.data)
-
-# GOOD: JSON with validation
-from jsonschema import validate
-
-data = json.loads(request.data)
-validate(instance=data, schema=schema)
-```
-
-### 9. Logging Failures
-
-```python
-# Log security events
-logger.info("api_access", user_id=user.id, ip=request.remote_addr)
-logger.warning("failed_login", username=username, ip=request.remote_addr)
-logger.error("authorization_failure", user_id=user.id, resource=resource)
-```
-
-**Log:** Login attempts, auth failures, admin actions, sensitive data access, config changes
-
-### 10. Server-Side Request Forgery (SSRF)
-
-```python
-# BAD: User-controlled URL
-response = requests.get(request.args.get('url'))
-
-# GOOD: Allowlist validation
-from urllib.parse import urlparse
-
-url = request.args.get('url')
-parsed = urlparse(url)
-
-ALLOWED_DOMAINS = ['api.example.com']
-if parsed.netloc not in ALLOWED_DOMAINS:
-    abort(400, "Invalid URL")
-
-BLOCKED_IPS = ['127.0.0.1', 'localhost', '169.254.169.254']
-if parsed.hostname in BLOCKED_IPS:
-    abort(400, "Access denied")
-
-response = requests.get(url, timeout=5)
-```
+See `references/owasp-top-10.md` for detailed bad/good code examples per vulnerability.
 
 ---
 
@@ -269,59 +98,36 @@ class UserInput(BaseModel):
 from markupsafe import escape
 from urllib.parse import quote
 
-# HTML
-html = f"<div>{escape(username)}</div>"
-
-# URL
-url = f"https://example.com/search?q={quote(term)}"
-
-# JavaScript
-js = f"var name = {json.dumps(username)};"
-
-# SQL (parameterized, not escaped)
-query = "SELECT * FROM users WHERE name = ?"
-db.execute(query, [username])
+html = f"<div>{escape(username)}</div>"          # HTML context
+url = f"https://example.com/search?q={quote(term)}"  # URL context
+js = f"var name = {json.dumps(username)};"        # JS context
+db.execute("SELECT * FROM users WHERE name = ?", [username])  # SQL: parameterize
 ```
 
 ---
 
 ## Secrets Management
 
-**Never commit secrets:**
-
 ```python
 # BAD: Hardcoded
 API_KEY = "sk_live_abc123"
 
-# GOOD: Environment
+# GOOD: Environment with verification
 import os
-API_KEY = os.environ['API_KEY']
-
-# Verify required
 for secret in ['API_KEY', 'DATABASE_URL', 'SECRET_KEY']:
     if secret not in os.environ:
         raise RuntimeError(f"Missing: {secret}")
 ```
 
-**.env (Never Commit):**
 ```bash
-# .env (add to .gitignore)
+# .env (add to .gitignore, NEVER commit)
 API_KEY=sk_live_abc123
 
 # .env.example (commit this)
 API_KEY=your_api_key_here
 ```
 
-**Production: Secret Managers**
-```python
-# AWS Secrets Manager
-import boto3
-secret = boto3.client('secretsmanager').get_secret_value(SecretId='myapp/config')
-
-# HashiCorp Vault
-import hvac
-secret = hvac.Client().secrets.kv.v2.read_secret_version(path='myapp/config')
-```
+**Production:** Use AWS Secrets Manager, HashiCorp Vault, or platform-native secret stores.
 
 ---
 
@@ -330,10 +136,6 @@ secret = hvac.Client().secrets.kv.v2.read_secret_version(path='myapp/config')
 ### Path Traversal
 
 ```python
-# BAD
-with open(f'/var/data/{filename}') as f:  # Attack: ../../etc/passwd
-
-# GOOD
 from pathlib import Path
 BASE_DIR = Path('/var/data')
 file_path = (BASE_DIR / filename).resolve()
@@ -344,10 +146,7 @@ if not file_path.is_relative_to(BASE_DIR):
 ### Mass Assignment
 
 ```python
-# BAD
-user.update(**request.json)  # Attack: {"is_admin": true}
-
-# GOOD
+# BAD: user.update(**request.json)  # Attack: {"is_admin": true}
 ALLOWED = ['name', 'email', 'bio']
 for field in ALLOWED:
     if field in request.json:
@@ -364,117 +163,49 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'Strict'
 
 ---
 
-## Security Scanning
+## Security Tooling
 
-### Static Analysis
 ```bash
-# Python
-bandit -r src/ -f json -o report.json
-
-# Detects: Hardcoded passwords, SQL injection, weak crypto, shell injection
+bandit -r src/ -f json -o report.json   # Static analysis
+safety check                            # Python dependency scan
+npm audit                               # Node dependency scan
+trivy image myapp:latest                # Container scan
 ```
 
-### Dependency Scanning
-```bash
-pip install safety
-safety check
-
-npm audit
-```
-
-### Container Scanning
-```bash
-trivy image myapp:latest
-```
-
-### Pre-commit Hook
-```bash
-#!/bin/bash
-# Scan for secrets
-if git diff --cached | grep -i 'password\|secret\|api_key'; then
-    echo "ERROR: Potential secret"
-    exit 1
-fi
-bandit -r src/ || exit 1
-```
-
----
-
-## Security Headers
-
-```python
-@app.after_request
-def security_headers(response):
-    response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['X-Frame-Options'] = 'DENY'
-    response.headers['X-XSS-Protection'] = '1; mode=block'
-    response.headers['Strict-Transport-Security'] = 'max-age=31536000'
-    response.headers['Content-Security-Policy'] = "default-src 'self'"
-    return response
-```
+See `references/security-tooling.md` for pre-commit hooks, security headers config, and CI/CD integration.
 
 ---
 
 ## Quick Checklist
 
-**Authentication & Authorization:**
+**Auth:**
 - [ ] Auth required for protected endpoints
 - [ ] Authorization checked per resource
-- [ ] Secure session management
 - [ ] Password hashing (bcrypt/argon2)
+- [ ] Secure session management
 - [ ] MFA for sensitive operations
 
-**Input Handling:**
-- [ ] All inputs validated
-- [ ] Allowlist validation
+**Input/Output:**
+- [ ] All inputs validated (allowlist)
 - [ ] Parameterized queries
-- [ ] No shell injection
-- [ ] File upload restrictions
-
-**Output Handling:**
-- [ ] Context-aware encoding
-- [ ] Auto-escaping templates
-- [ ] CSP headers
-- [ ] No sensitive data in responses
-- [ ] Generic error messages
+- [ ] Context-aware output encoding
+- [ ] CSP headers set
+- [ ] Generic error messages (no stack traces)
 
 **Secrets & Crypto:**
-- [ ] No secrets in code
-- [ ] Environment variables
-- [ ] Strong encryption (AES-256)
+- [ ] No secrets in code or git
+- [ ] Environment variables or secret manager
 - [ ] TLS everywhere
-- [ ] Secure random (secrets module)
+- [ ] `secrets` module for random tokens
 
 **Monitoring:**
 - [ ] Security events logged
-- [ ] Failed auth logged
-- [ ] Suspicious patterns detected
-- [ ] Audit trail
+- [ ] Failed auth attempts tracked
+- [ ] Audit trail for admin actions
 - [ ] Alerts configured
 
-**Configuration:**
+**Config:**
 - [ ] Debug off in production
-- [ ] Security headers
+- [ ] Security headers (HSTS, CSP, X-Frame-Options)
 - [ ] Default credentials changed
-- [ ] Unnecessary features disabled
 - [ ] Dependencies updated
-
----
-
-## Summary
-
-**Key Principles:**
-
-1. **Defense in Depth** - Multiple security layers
-2. **Least Privilege** - Minimum necessary permissions
-3. **Fail Secure** - Deny by default
-4. **Never Trust Input** - Validate everything
-5. **Assume Breach** - Monitor and audit
-6. **Security is Everyone's Job** - Not just security team
-
-**The 10X Difference:**
-
-- 1X Developer: Treats security as afterthought
-- 10X Developer: Builds security in from the start
-
-Security flaws in production cost 30x more than catching them in development. Build it secure the first time.

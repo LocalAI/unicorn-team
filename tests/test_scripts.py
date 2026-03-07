@@ -4,7 +4,7 @@ Validation tests for scripts in the 10X Developer Unicorn project.
 Tests ensure:
 - Scripts are executable
 - Scripts have proper shebangs
-- Required scripts exist
+- Required scripts exist (at new co-located paths)
 """
 
 import os
@@ -16,20 +16,25 @@ import pytest
 
 PROJECT_ROOT = Path(__file__).parent.parent
 SCRIPTS_DIR = PROJECT_ROOT / "scripts"
+SKILLS_DIR = PROJECT_ROOT / "skills"
 
 
-def find_script_files():
-    """Find all script files in the scripts directory."""
-    if not SCRIPTS_DIR.exists():
-        return []
-
+def find_all_script_files():
+    """Find all script files in scripts/ and skills/**/scripts/ directories."""
     scripts = []
-    for file in SCRIPTS_DIR.iterdir():
-        # Skip non-files and hidden files
-        if file.is_file() and not file.name.startswith("."):
-            # Include shell scripts and files without extension
-            if file.suffix in [".sh", ""] or file.name.endswith(".sh"):
-                scripts.append(file)
+
+    # Root scripts directory
+    if SCRIPTS_DIR.exists():
+        for file in SCRIPTS_DIR.iterdir():
+            if file.is_file() and not file.name.startswith("."):
+                if file.suffix in [".sh", ""] or file.name.endswith(".sh"):
+                    scripts.append(file)
+
+    # Co-located scripts in skill directories
+    if SKILLS_DIR.exists():
+        for script_file in SKILLS_DIR.rglob("scripts/*.sh"):
+            if script_file.is_file():
+                scripts.append(script_file)
 
     return scripts
 
@@ -52,16 +57,16 @@ def get_shebang(file_path):
     return None
 
 
-@pytest.mark.parametrize("script_file", find_script_files())
+@pytest.mark.parametrize("script_file", find_all_script_files())
 def test_scripts_are_executable(script_file):
-    """All scripts in scripts/ must be chmod +x."""
+    """All scripts must be chmod +x."""
     assert is_executable(script_file), (
         f"{script_file.relative_to(PROJECT_ROOT)} is not executable. "
         f"Run: chmod +x {script_file}"
     )
 
 
-@pytest.mark.parametrize("script_file", find_script_files())
+@pytest.mark.parametrize("script_file", find_all_script_files())
 def test_scripts_have_shebang(script_file):
     """All scripts must start with #!/usr/bin/env bash or similar."""
     shebang = get_shebang(script_file)
@@ -71,7 +76,6 @@ def test_scripts_have_shebang(script_file):
         f"(e.g., #!/usr/bin/env bash)"
     )
 
-    # Valid shebangs for shell scripts
     valid_shebangs = [
         "#!/usr/bin/env bash",
         "#!/bin/bash",
@@ -100,80 +104,31 @@ def test_scripts_directory_exists():
 
 
 def test_install_script_exists():
-    """Verify install.sh exists."""
+    """Verify install.sh exists at project root."""
     install_script = SCRIPTS_DIR / "install.sh"
-
-    # Skip if scripts directory doesn't exist yet
-    if not SCRIPTS_DIR.exists():
-        pytest.skip("Scripts directory does not exist yet")
-
-    # Skip if no scripts exist yet (early in development)
-    if not list(SCRIPTS_DIR.iterdir()):
-        pytest.skip("No scripts created yet")
-
-    if not install_script.exists():
-        pytest.skip(
-            f"install.sh not created yet at {install_script.relative_to(PROJECT_ROOT)}"
-        )
-
     assert install_script.exists(), (
         f"install.sh must exist at {install_script.relative_to(PROJECT_ROOT)}"
     )
 
 
-def test_tdd_script_exists():
-    """Verify tdd.sh exists (when created)."""
-    tdd_script = SCRIPTS_DIR / "tdd.sh"
-
-    # Skip if scripts directory doesn't exist yet
-    if not SCRIPTS_DIR.exists():
-        pytest.skip("Scripts directory does not exist yet")
-
-    # Skip if no scripts exist yet (early in development)
-    if not list(SCRIPTS_DIR.iterdir()):
-        pytest.skip("No scripts created yet")
-
-    if not tdd_script.exists():
-        pytest.skip(
-            f"tdd.sh not created yet at {tdd_script.relative_to(PROJECT_ROOT)}"
-        )
-
-    assert tdd_script.exists(), (
-        f"tdd.sh must exist at {tdd_script.relative_to(PROJECT_ROOT)}"
-    )
+# Co-located script existence tests
+SCRIPT_LOCATIONS = {
+    "tdd.sh": SKILLS_DIR / "agents" / "developer" / "scripts" / "tdd.sh",
+    "self-review.sh": SKILLS_DIR / "unicorn" / "self-verification" / "scripts" / "self-review.sh",
+    "estimate.sh": SKILLS_DIR / "unicorn" / "estimation" / "scripts" / "estimate.sh",
+    "new-language.sh": SKILLS_DIR / "unicorn" / "language-learning" / "scripts" / "new-language.sh",
+}
 
 
-def test_self_review_script_exists():
-    """Verify self-review.sh exists (when created)."""
-    self_review_script = SCRIPTS_DIR / "self-review.sh"
-
-    # Skip if scripts directory doesn't exist yet
-    if not SCRIPTS_DIR.exists():
-        pytest.skip("Scripts directory does not exist yet")
-
-    # Skip if no scripts exist yet (early in development)
-    if not list(SCRIPTS_DIR.iterdir()):
-        pytest.skip("No scripts created yet")
-
-    if not self_review_script.exists():
-        pytest.skip(
-            f"self-review.sh not created yet at {self_review_script.relative_to(PROJECT_ROOT)}"
-        )
-
-    assert self_review_script.exists(), (
-        f"self-review.sh must exist at {self_review_script.relative_to(PROJECT_ROOT)}"
+@pytest.mark.parametrize("name,path", SCRIPT_LOCATIONS.items())
+def test_colocated_script_exists(name, path):
+    """Verify co-located scripts exist at their owning skill paths."""
+    assert path.exists(), (
+        f"{name} must exist at {path.relative_to(PROJECT_ROOT)}"
     )
 
 
 def test_at_least_one_script_exists():
     """At least one script should exist for meaningful testing."""
-    if not SCRIPTS_DIR.exists():
-        pytest.skip("Scripts directory does not exist yet")
-
-    script_files = find_script_files()
-
-    if len(script_files) == 0:
-        pytest.skip(
-            "No script files found yet. "
-            "This test will run once scripts are created."
-        )
+    script_files = find_all_script_files()
+    assert len(script_files) > 0, "No script files found"

@@ -4,7 +4,7 @@ Complete agent orchestration system for Claude Code.
 
 ## Status: COMPLETE
 
-All 6 phases implemented. 62 tests passing.
+All 6 phases implemented. 80+ tests passing. Skills reworked to official Anthropic patterns (2026-03).
 
 ## Project Overview
 
@@ -45,21 +45,39 @@ unicorn-team/
 ├── skills/
 │   ├── unicorn/                       # Meta-skills (7)
 │   │   ├── orchestrator/SKILL.md
-│   │   ├── self-verification/SKILL.md
+│   │   ├── self-verification/
+│   │   │   ├── SKILL.md
+│   │   │   ├── references/
+│   │   │   └── scripts/self-review.sh
 │   │   ├── code-reading/SKILL.md
 │   │   ├── pattern-transfer/SKILL.md
-│   │   ├── estimation/SKILL.md
+│   │   ├── estimation/
+│   │   │   ├── SKILL.md
+│   │   │   ├── references/
+│   │   │   └── scripts/estimate.sh
 │   │   ├── technical-debt/SKILL.md
 │   │   └── language-learning/
 │   │       ├── SKILL.md
-│   │       └── references/
+│   │       ├── references/
+│   │       └── scripts/new-language.sh
 │   ├── agents/                        # Agent definitions (5)
-│   │   ├── developer.md
-│   │   ├── architect.md
-│   │   ├── qa-security.md
-│   │   ├── devops.md
-│   │   ├── polyglot.md
-│   │   └── references/
+│   │   ├── developer/
+│   │   │   ├── SKILL.md
+│   │   │   ├── references/
+│   │   │   └── scripts/tdd.sh
+│   │   ├── architect/
+│   │   │   ├── SKILL.md
+│   │   │   └── references/
+│   │   ├── qa-security/
+│   │   │   ├── SKILL.md
+│   │   │   └── references/
+│   │   ├── devops/
+│   │   │   ├── SKILL.md
+│   │   │   └── references/
+│   │   └── polyglot/
+│   │       ├── SKILL.md
+│   │       ├── references/
+│   │       └── scripts/new-language.sh
 │   └── domain/                        # Domain skills (5)
 │       ├── python/
 │       ├── javascript/
@@ -70,11 +88,7 @@ unicorn-team/
 │   ├── pre-commit
 │   └── pre-push
 ├── scripts/
-│   ├── install.sh
-│   ├── tdd.sh
-│   ├── self-review.sh
-│   ├── estimate.sh
-│   └── new-language.sh
+│   └── install.sh
 └── tests/
     ├── test_hooks.py
     ├── test_scripts.py
@@ -97,16 +111,18 @@ Every SKILL.md must have:
 ```yaml
 ---
 name: skill-name
-description: >
-  Clear description of what it does AND when to use it.
-  Include trigger phrases.
+description: >-
+  Third-person description. ALWAYS trigger on "phrase1", "phrase2", "phrase3".
+  Use when [conditions]. Different from [sibling] which [difference].
 ---
 ```
 
 Body guidelines:
-- Under 500 lines (split to references/ if larger)
-- Imperative voice
-- Concrete examples over explanations
+- Under 500 lines (target 150-300; split to references/ if larger)
+- Action over explanation (Claude is already smart)
+- Decision tables and checklists over prose
+- Scripts co-located in skill's scripts/ directory
+- Detailed content in references/ directory
 
 ### Quality Gates
 
@@ -144,11 +160,11 @@ Scope: orchestrator, developer, qa, devops, hooks, etc.
 - [x] skills/unicorn/language-learning/SKILL.md
 
 ### Phase 3: Agent Definitions - COMPLETE
-- [x] skills/agents/developer.md
-- [x] skills/agents/architect.md
-- [x] skills/agents/qa-security.md
-- [x] skills/agents/devops.md
-- [x] skills/agents/polyglot.md
+- [x] skills/agents/developer/SKILL.md + references/ + scripts/
+- [x] skills/agents/architect/SKILL.md + references/
+- [x] skills/agents/qa-security/SKILL.md + references/
+- [x] skills/agents/devops/SKILL.md + references/
+- [x] skills/agents/polyglot/SKILL.md + references/ + scripts/
 
 ### Phase 4: Domain Skills - COMPLETE
 - [x] skills/domain/python/SKILL.md
@@ -158,10 +174,10 @@ Scope: orchestrator, developer, qa, devops, hooks, etc.
 - [x] skills/domain/devops/SKILL.md
 
 ### Phase 5: Scripts & Automation - COMPLETE
-- [x] scripts/tdd.sh
-- [x] scripts/self-review.sh
-- [x] scripts/estimate.sh
-- [x] scripts/new-language.sh
+- [x] skills/agents/developer/scripts/tdd.sh (moved from scripts/)
+- [x] skills/unicorn/self-verification/scripts/self-review.sh (moved from scripts/)
+- [x] skills/unicorn/estimation/scripts/estimate.sh (moved from scripts/)
+- [x] skills/unicorn/language-learning/scripts/new-language.sh (moved from scripts/)
 - [x] hooks/pre-push
 
 ### Phase 6: Documentation & Polish - COMPLETE
@@ -173,12 +189,12 @@ Scope: orchestrator, developer, qa, devops, hooks, etc.
 ## Commands
 
 ```bash
-./scripts/install.sh              # Install system
-./scripts/tdd.sh <feature>        # TDD workflow
-./scripts/self-review.sh          # Pre-commit checklist
-./scripts/estimate.sh             # PERT estimation
-./scripts/new-language.sh <lang>  # Language learning
-pytest tests/ -v                  # Run all tests
+./scripts/install.sh                                          # Install system
+./skills/agents/developer/scripts/tdd.sh <feature>            # TDD workflow
+./skills/unicorn/self-verification/scripts/self-review.sh     # Pre-commit checklist
+./skills/unicorn/estimation/scripts/estimate.sh               # PERT estimation
+./skills/unicorn/language-learning/scripts/new-language.sh <lang>  # Language learning
+pytest tests/ -v                                              # Run all tests
 ```
 
 ## Token Management
@@ -210,7 +226,7 @@ Complex multi-domain   -> Parallel delegation
 - [x] Self-review checklist integrated
 
 ### Quality
-- [x] 62 tests passing
+- [x] 80+ tests passing
 - [x] No TODO/FIXME/HACK in committed code
 - [x] All skills under 500 lines
 - [x] Documentation complete

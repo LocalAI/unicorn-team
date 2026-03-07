@@ -1,375 +1,171 @@
 ---
 name: testing
-description: >
-  Cross-language testing expertise for TDD-first development. Use when writing
-  tests, implementing test-first workflow, improving test coverage, debugging
-  flaky tests, or designing testable code. Covers unit/integration/E2E testing,
-  mocking strategies, coverage requirements, and anti-patterns across Python,
-  JavaScript, Go, and Rust. Trigger phrases: "write tests", "TDD", "test coverage",
-  "mock", "test fails", "flaky test", "how to test".
+description: >-
+  Guides the user through test-first development and test strategy decisions.
+  ALWAYS trigger on "write tests", "TDD", "test coverage", "mock", "test fails",
+  "flaky test", "how to test", "unit test", "integration test", "e2e test",
+  "test structure", "what to test", "test organization", "coverage report",
+  "testing strategy", "arrange act assert". Use when writing new tests, choosing
+  test types, setting up mocking, debugging flaky tests, improving coverage, or
+  designing testable code. Different from qa-security agent which focuses on
+  code review and security audits rather than test authoring.
 ---
 
 # Testing Domain Skill
 
-## TDD Fundamentals
+## TDD Cycle: RED -> GREEN -> REFACTOR
 
-### The Iron Law: RED → GREEN → REFACTOR
-
-This is non-negotiable. Always follow this cycle:
-
-1. **RED**: Write a failing test first
-   - Test must fail for the right reason
-   - Proves the test actually tests something
-   - Documents expected behavior
-
-2. **GREEN**: Write minimum code to pass
-   - No gold plating
-   - Simplest implementation that works
-   - Proves the approach is viable
-
-3. **REFACTOR**: Improve without changing behavior
-   - Tests stay green
-   - Clean up duplication
-   - Improve design
+1. **RED** - Write a failing test. Must fail for the right reason.
+2. **GREEN** - Write minimum code to pass. No gold plating.
+3. **REFACTOR** - Improve design. Tests stay green.
 
 ```python
-# RED: Write failing test
+# RED
 def test_user_full_name():
     user = User(first="Jane", last="Doe")
     assert user.full_name() == "Jane Doe"
-    # This fails because full_name() doesn't exist yet
 
-# GREEN: Minimum implementation
+# GREEN
 class User:
     def __init__(self, first, last):
         self.first = first
         self.last = last
-
     def full_name(self):
         return f"{self.first} {self.last}"
 
-# REFACTOR: Tests pass, improve design if needed
+# REFACTOR: tests pass, clean up if needed
 ```
 
-**See:** `references/tdd-deep-dive.md` for comprehensive TDD methodology, when to break rules, and advanced techniques.
+**See:** `references/tdd-deep-dive.md` for advanced TDD techniques.
 
-### Test-First Mindset
+## What to Test / What NOT to Test
 
-Write tests before implementation because:
-- Forces you to think about interface design
-- Documents expected behavior
-- Prevents over-engineering
-- Makes code testable by default
-
-### What to Test
-
-**DO test behavior:**
+**DO test (behavior):**
 - Public API contracts
 - Edge cases and boundaries
 - Error conditions
 - State transitions
 - Business logic
 
-**DON'T test implementation:**
+**DON'T test (implementation):**
 - Private methods (test through public API)
-- Language features (trust the language)
-- Third-party libraries (trust but verify integration)
+- Language features
+- Third-party libraries (only verify integration)
 - Trivial getters/setters
+- Generated code, migrations, static config
 
 ## Test Types
 
 ### Unit Tests
-
-Fast, isolated, test single units of behavior.
-
-**Characteristics:**
-- Run in milliseconds
-- No I/O (network, disk, database)
-- No external dependencies
-- Can run in parallel
-- Deterministic results
-
-**Python (pytest):**
-```python
-def test_calculate_discount():
-    # Arrange
-    price = 100
-    discount_percent = 20
-
-    # Act
-    result = calculate_discount(price, discount_percent)
-
-    # Assert
-    assert result == 80
-```
-
-**JavaScript (Jest):**
-```javascript
-test('applies discount correctly', () => {
-  const result = calculateDiscount(100, 20);
-  expect(result).toBe(80);
-});
-```
-
-**See:** `references/test-patterns-by-language.md` for comprehensive language-specific examples, frameworks, and idioms.
+- Run in milliseconds, no I/O, no external dependencies
+- Deterministic, parallelizable
+- Test single units of behavior
 
 ### Integration Tests
-
-Test component boundaries and interactions.
-
-**Characteristics:**
-- Slower than unit tests (seconds)
-- May involve I/O
-- Test real integrations
+- Seconds to run, may involve I/O
+- Test real component boundaries
 - Run sequentially if stateful
 
-**Python (database integration):**
-```python
-@pytest.fixture
-def db_session():
-    engine = create_engine('sqlite:///:memory:')
-    Base.metadata.create_all(engine)
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    yield session
-    session.close()
-
-def test_user_repository_save(db_session):
-    repo = UserRepository(db_session)
-    user = User(email="test@example.com")
-
-    saved_user = repo.save(user)
-
-    assert saved_user.id is not None
-    assert repo.find_by_id(saved_user.id).email == "test@example.com"
-```
-
 ### E2E Tests
-
-Test complete user flows through the system.
-
-**Characteristics:**
 - Slowest (seconds to minutes)
-- Test from user perspective
-- May involve UI, API, database
+- Test complete user flows from user perspective
 - Run against staging/test environment
 
-**Python (playwright):**
-```python
-def test_user_signup_flow(browser):
-    browser.goto("http://localhost:3000/signup")
-    browser.fill('input[name="email"]', "newuser@example.com")
-    browser.fill('input[name="password"]', "SecurePass123!")
-    browser.click('button[type="submit"]')
-
-    assert browser.url == "http://localhost:3000/dashboard"
-    assert "Welcome" in browser.text_content('h1')
-```
-
 ### Characterization Tests
+- Capture existing behavior of legacy code before refactoring
+- Document current behavior (even if wrong), then refactor against it
 
-Capture existing behavior of legacy code before refactoring.
+**See:** `references/test-patterns-by-language.md` for language-specific frameworks and idioms.
 
-**Strategy:**
-1. Write tests that document current behavior (even if wrong)
-2. Run tests to establish baseline
-3. Refactor code
-4. Adjust tests if behavior should change
-5. Keep tests as regression suite
-
-```python
-def test_legacy_calculation_current_behavior():
-    """Documents current behavior before refactoring.
-
-    Note: This calculation appears incorrect (should be 42?)
-    but preserving current behavior during refactor.
-    """
-    result = legacy_calculate(10, 5)
-    assert result == 48  # Current behavior
-```
-
-## Test Structure
-
-### Arrange-Act-Assert (AAA)
-
-Standard pattern for clear, readable tests:
+## Test Structure: Arrange-Act-Assert
 
 ```python
 def test_shopping_cart_total():
-    # Arrange: Set up test data and dependencies
+    # Arrange
     cart = ShoppingCart()
     cart.add_item(Item("Book", 10.00))
 
-    # Act: Execute the behavior under test
+    # Act
     total = cart.calculate_total()
 
-    # Assert: Verify the outcome
+    # Assert
     assert total == 10.00
 ```
 
-### One Assertion Per Test
-
-**Prefer this:**
-```python
-def test_user_creation_sets_email():
-    user = User("test@example.com")
-    assert user.email == "test@example.com"
-
-def test_user_creation_generates_id():
-    user = User("test@example.com")
-    assert user.id is not None
-```
-
-**Exception:** Related assertions on same object are acceptable:
-```python
-def test_coordinate_creation():
-    coord = Coordinate(10, 20)
-    assert coord.x == 10
-    assert coord.y == 20
-```
+Prefer one assertion per test. Exception: related assertions on the same object.
 
 ## Coverage Requirements
 
-### Minimum Standards
+| Metric | Threshold |
+|--------|-----------|
+| Line coverage | 80% minimum (CI-enforced) |
+| Branch coverage | More important than line coverage |
+| Critical paths | 100% |
 
-- **80% line coverage** (enforced by CI)
-- **Branch coverage** more important than line coverage
-- **Critical paths** must have 100% coverage
+### Coverage Commands
 
-### Measure Coverage
+| Language | Command |
+|----------|---------|
+| Python | `pytest --cov=myapp --cov-report=html --cov-fail-under=80` |
+| JavaScript | `jest --coverage --coverageThreshold='{"global":{"lines":80}}'` |
+| Go | `go test -cover -coverprofile=coverage.out && go tool cover -html=coverage.out` |
+| Rust | `cargo tarpaulin --out Html --output-dir coverage` |
 
-**Python:**
-```bash
-pytest --cov=myapp --cov-report=html --cov-fail-under=80
-```
-
-**JavaScript:**
-```bash
-jest --coverage --coverageThreshold='{"global":{"lines":80}}'
-```
-
-**Go:**
-```bash
-go test -cover -coverprofile=coverage.out
-go tool cover -html=coverage.out
-```
-
-**Rust:**
-```bash
-cargo tarpaulin --out Html --output-dir coverage
-```
-
-**See:** `references/coverage-strategies.md` for comprehensive coverage techniques including branch coverage, mutation testing, and coverage-driven development.
-
-### What NOT to Test
-
-Don't waste time testing:
-- **Trivial code:** Simple getters, setters, constructors
-- **Framework code:** Trust the framework
-- **Generated code:** Generated clients, migrations
-- **Configuration:** Static configuration files
+**See:** `references/coverage-strategies.md` for branch coverage, mutation testing, and coverage-driven development.
 
 ## Mocking Strategy
 
 ### When to Mock
 
-Mock external dependencies that:
-- Make network calls (APIs, databases)
-- Access filesystem
-- Use current time/randomness
-- Are slow or unreliable
-- Cost money (third-party APIs)
-
-### When NOT to Mock
-
-Don't mock:
-- Internal implementation details
-- Value objects and data structures
-- Code under test
-- Simple collaborators (prefer real objects)
+| Mock | Don't Mock |
+|------|-----------|
+| Network calls (APIs, databases) | Internal implementation details |
+| Filesystem access | Value objects and data structures |
+| Time/randomness dependencies | The code under test |
+| Slow or unreliable dependencies | Simple collaborators (prefer real objects) |
+| Paid third-party APIs | |
 
 ### Mock Types
 
-**Stub:** Returns predefined values
-```python
-class StubEmailService:
-    def send(self, to, subject, body):
-        return True  # Always succeeds
-```
-
-**Spy:** Records calls for verification
-```python
-class SpyEmailService:
-    def __init__(self):
-        self.calls = []
-
-    def send(self, to, subject, body):
-        self.calls.append((to, subject, body))
-        return True
-```
-
-**Fake:** Simplified working implementation
-```python
-class FakeUserRepository:
-    def __init__(self):
-        self.users = {}
-        self._next_id = 1
-
-    def save(self, user):
-        user.id = self._next_id
-        self.users[user.id] = user
-        self._next_id += 1
-        return user
-```
-
-**See:** `references/mocking-strategies.md` for comprehensive mocking patterns, when to use each type, cross-language examples, and avoiding over-mocking.
+- **Stub** - Returns predefined values. Use for simple dependency replacement.
+- **Spy** - Records calls for verification. Use when you need to assert interactions.
+- **Fake** - Simplified working implementation (e.g., in-memory repository). Use for complex dependencies.
 
 ### Cross-Language Mocking
 
-**Python:** `unittest.mock.Mock()` with `assert_called_once()`
-**JavaScript:** `jest.fn()` with `expect().toHaveBeenCalled()`
-**Go:** Interfaces with mock structs tracking call state
-**Rust:** Traits with mock implementations using `RefCell` for interior mutability
+| Language | Tool | Verify Call |
+|----------|------|-------------|
+| Python | `unittest.mock.Mock()` | `assert_called_once()` |
+| JavaScript | `jest.fn()` | `expect().toHaveBeenCalled()` |
+| Go | Interfaces + mock structs | Track call state manually |
+| Rust | Traits + mock impls | `RefCell` for interior mutability |
 
-See `references/mocking-strategies.md` for detailed cross-language examples.
+**See:** `references/mocking-strategies.md` for comprehensive patterns and anti-patterns.
 
 ## Anti-Patterns
 
-### Testing Implementation Details
-
-**BAD:** Testing HOW (verifying mock.find_by_id was called)
-
-**GOOD:** Testing WHAT (verifying correct user is returned with expected email)
-
-### Flaky Tests
-
-**Causes:** Non-deterministic inputs (time, random), shared state, async timing, external dependencies.
-
-**Fixes:** Inject time dependencies, isolate state with fixtures, use wait conditions for async code.
-
-### Over-Mocking
-
-**BAD:** Mocking everything (repo, email, logger, validator, hasher) makes tests brittle and meaningless.
-
-**GOOD:** Only mock external boundaries (email service), use real implementations for internal logic.
+| Anti-Pattern | Problem | Fix |
+|-------------|---------|-----|
+| Testing implementation | Brittle tests that break on refactor | Test WHAT (outputs/behavior), not HOW (internal calls) |
+| Flaky tests | Non-deterministic failures | Inject time deps, isolate state, use wait conditions for async |
+| Over-mocking | Tests verify mocks, not behavior | Only mock external boundaries, use real objects internally |
 
 ## Test Organization
 
-**Structure:** Separate unit/integration/e2e tests. Python uses `tests/` directory, JavaScript often colocates.
-
-**Naming:** `test_*.py`, `*.test.js`, `*_test.go`, `tests.rs`
-
-**Functions:** Descriptive names like `test_user_login_with_invalid_password_returns_error()` not `test_case_1()`
+- **Structure:** Separate `unit/`, `integration/`, `e2e/` directories
+- **Naming conventions:** `test_*.py`, `*.test.js`, `*_test.go`, `tests.rs`
+- **Function names:** Descriptive -- `test_user_login_with_invalid_password_returns_error()` not `test_case_1()`
 
 ## Quick Reference
 
-**TDD Commands:** `pytest -x` (Python), `npm test -- --watch` (JS), `go test ./...` (Go), `cargo test` (Rust)
-
-**Coverage:** `pytest --cov=. --cov-fail-under=80` (Python), `jest --coverage` (JS), `go test -cover` (Go), `cargo tarpaulin` (Rust)
+| Task | Python | JavaScript | Go | Rust |
+|------|--------|------------|----|------|
+| Run tests | `pytest -x` | `npm test -- --watch` | `go test ./...` | `cargo test` |
+| Coverage | `pytest --cov=. --cov-fail-under=80` | `jest --coverage` | `go test -cover` | `cargo tarpaulin` |
 
 ## Remember
 
-1. **RED → GREEN → REFACTOR** is mandatory
+1. **RED -> GREEN -> REFACTOR** is mandatory
 2. **Test behavior, not implementation**
 3. **80% coverage minimum**, critical paths 100%
 4. **Mock external boundaries only**
@@ -386,3 +182,5 @@ See `references/mocking-strategies.md` for detailed cross-language examples.
 - `references/mocking-strategies.md` - Comprehensive mocking patterns and anti-patterns
 - `references/test-patterns-by-language.md` - Language-specific testing patterns
 - `references/coverage-strategies.md` - Advanced coverage techniques and mutation testing
+
+<!-- Last reviewed: 2026-03 -->
