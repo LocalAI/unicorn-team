@@ -3,6 +3,7 @@ layout: default
 title: "10X Developer Unicorn - Claude Code Plugin"
 description: "Transform Claude Code into a coordinated engineering team. 5 agents and 13 composable skills encode the hidden 80% of software engineering expertise."
 hero: true
+hero_image: "assets/images/hero.png"
 hero_title: "10X Developer Unicorn"
 hero_tagline: "A Claude Code plugin that transforms your AI assistant into a coordinated engineering team. 5 agents. 13 skills. The hidden 80% of software engineering -- encoded."
 hero_actions:
@@ -19,7 +20,7 @@ hero_stats:
   - number: "13"
     label: "Skills"
     color: "var(--mauve)"
-  - number: "94"
+  - number: "110"
     label: "Tests Passing"
     color: "var(--green)"
   - number: "58"
@@ -29,6 +30,8 @@ permalink: /
 ---
 
 ## What Is This?
+
+<img src="{{ site.baseurl }}/assets/images/concept.png" alt="The Hidden 80% — most AI tools cover the visible 20% of software engineering, unicorn-team encodes the hidden 80% with 5 agents and 13 skills" class="concept-image">
 
 Most AI coding tools help with the **visible 20%** of software engineering: writing code. But professional developers spend 80% of their time on everything *around* the code -- reading existing systems, recognizing patterns, estimating effort, reviewing their own work, managing technical debt, thinking about security.
 
@@ -46,32 +49,15 @@ claude plugin install aj-geddes/unicorn-team
 
 That's it. Skills are discovered automatically. Hooks are wired. The orchestrator activates.
 
+<img src="{{ site.baseurl }}/assets/images/install-process.png" alt="Terminal showing unicorn-team plugin installation — 13 skills loaded, 5 agents ready, orchestrator activated" class="concept-image">
+
 ---
 
 ## How It Works
 
 The orchestrator analyzes every task and routes it to the right specialist. Each agent gets a fresh 200K context window, so you never run out of room.
 
-<div class="diagram">
-  <div class="flow">
-    <div class="flow-node bg-pink">You</div>
-    <div class="flow-arrow"></div>
-    <div class="flow-node bg-blue">Orchestrator</div>
-    <div class="flow-arrow"></div>
-    <div class="flow-fan">
-      <div class="flow-node bg-mauve">Architect</div>
-      <div class="flow-node bg-green">Developer</div>
-      <div class="flow-node bg-peach">QA / Security</div>
-      <div class="flow-node bg-teal">DevOps</div>
-      <div class="flow-node bg-yellow">Polyglot</div>
-    </div>
-    <div class="flow-converge"></div>
-    <div class="flow-arrow"></div>
-    <div class="flow-node bg-red">Quality Gates</div>
-    <div class="flow-arrow"></div>
-    <div class="flow-node bg-green">Result</div>
-  </div>
-</div>
+<img src="{{ site.baseurl }}/assets/images/core-workflow.png" alt="Core workflow — User Request flows through Orchestrator to Agent Team (Architect, Developer, QA-Security, DevOps, Polyglot), through Quality Gates, to Result + Proof" class="concept-image">
 
 ---
 
@@ -129,18 +115,7 @@ Language-specific idioms, tooling, and patterns that agents draw on during execu
 
 Every implementation follows a strict test-driven cycle. The developer agent will not write production code without a failing test first.
 
-<div class="diagram">
-  <div class="tdd-cycle">
-    <div class="tdd-node bg-red">RED<small>Write Failing Test</small></div>
-    <div class="tdd-arrow"></div>
-    <div class="tdd-node bg-green">GREEN<small>Make It Pass</small></div>
-    <div class="tdd-arrow"></div>
-    <div class="tdd-node bg-blue">REFACTOR<small>Improve Code</small></div>
-    <div class="tdd-arrow"></div>
-    <div class="tdd-node bg-yellow">VERIFY<small>Self-Review</small></div>
-  </div>
-  <div class="tdd-loop-back"><div class="tdd-loop-line"></div></div>
-</div>
+<img src="{{ site.baseurl }}/assets/images/tdd-quality-gate.png" alt="TDD Cycle — RED (write failing test), GREEN (minimum code to pass), REFACTOR (improve, tests still green), VERIFY (self-review + coverage) — then Quality Gate: all tests pass, coverage >= 80%, self-review complete" class="concept-image">
 
 No exceptions. No shortcuts. Tests define the contract before code fills it.
 

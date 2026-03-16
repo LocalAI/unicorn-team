@@ -154,10 +154,25 @@
 
     /* ===== Hero ===== */
     .hero {
-      padding: 140px 24px 80px;
+      padding: 80px 24px 80px;
       text-align: center;
       max-width: 860px;
       margin: 0 auto;
+    }
+
+    .hero-image {
+      max-width: 100%;
+      border-radius: 16px;
+      margin-bottom: 40px;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .concept-image {
+      display: block;
+      max-width: 100%;
+      border-radius: 12px;
+      margin: 0 auto 32px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
     }
 
     .hero h1 {
@@ -953,6 +968,9 @@
   {% if page.hero %}
   <!-- Hero Section -->
   <section class="hero">
+    {% if page.hero_image %}
+    <img src="{{ site.baseurl }}/{{ page.hero_image }}" alt="{{ page.hero_title | default: site.title }}" class="hero-image">
+    {% endif %}
     <h1>{{ page.hero_title | default: site.title }}</h1>
     <p class="tagline">{{ page.hero_tagline | default: site.description }}</p>
     {% if page.hero_actions %}
