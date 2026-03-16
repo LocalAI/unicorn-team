@@ -41,10 +41,14 @@ The result: Claude Code that doesn't just write code -- it reads codebases strat
 
 ---
 
-## One Command Install
+## Install
 
 ```bash
-claude plugin install aj-geddes/unicorn-team
+# Add the marketplace
+claude plugin marketplace add aj-geddes/unicorn-team
+
+# Install the plugin
+claude plugin install unicorn-team@unicorn-team
 ```
 
 That's it. Skills are discovered automatically. Hooks are wired. The orchestrator activates.
@@ -124,7 +128,8 @@ No exceptions. No shortcuts. Tests define the contract before code fills it.
 ## Get Started
 
 ```bash
-claude plugin install aj-geddes/unicorn-team
+claude plugin marketplace add aj-geddes/unicorn-team
+claude plugin install unicorn-team@unicorn-team
 ```
 
 Then ask Claude Code to build something. The orchestrator takes it from there.

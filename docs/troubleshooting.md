@@ -55,7 +55,7 @@ pip install pytest pytest-cov ruff mypy
 ls -la .git/hooks/pre-commit
 
 # If missing, reinstall the plugin
-claude plugin install aj-geddes/unicorn-team
+claude plugin install unicorn-team@unicorn-team
 
 # If exists but not executable
 chmod +x .git/hooks/pre-commit
@@ -196,7 +196,7 @@ This checks that all SKILL.md files have valid frontmatter, scripts are executab
 chmod +x scripts/*.sh
 
 # Reinstall plugin and hooks
-claude plugin install aj-geddes/unicorn-team
+claude plugin install unicorn-team@unicorn-team
 
 # See failing test details
 pytest -v
@@ -220,5 +220,5 @@ bash -x ./scripts/script-name.sh
 
 1. Run the script with `bash -x` to see exactly where it fails
 2. Check `python --version` and `pip list | grep pytest`
-3. Try reinstalling: `claude plugin install aj-geddes/unicorn-team`
+3. Try reinstalling: `claude plugin install unicorn-team@unicorn-team`
 4. Open an issue at [github.com/aj-geddes/unicorn-team](https://github.com/aj-geddes/unicorn-team) with your error output and environment details
