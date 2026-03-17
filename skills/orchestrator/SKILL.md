@@ -27,13 +27,16 @@ protocol, not a description. Follow it literally.
 
 ## Agent Registry
 
+IMPORTANT: Agents are registered under the plugin namespace. Always use
+the `unicorn-team:` prefix when specifying `subagent_type`.
+
 | Agent | subagent_type | Model | Use For |
 |-------|--------------|-------|---------|
-| Developer | `developer` | sonnet | Code, tests, bug fixes, refactoring |
-| Architect | `architect` | opus | ADRs, API contracts, system design |
-| QA | `qa-security` | sonnet | Code review, security audit, quality gates |
-| DevOps | `devops` | sonnet | CI/CD, IaC, deployment, monitoring |
-| Polyglot | `polyglot` | opus | New languages, cross-ecosystem patterns |
+| Developer | `unicorn-team:developer` | sonnet | Code, tests, bug fixes, refactoring |
+| Architect | `unicorn-team:architect` | opus | ADRs, API contracts, system design |
+| QA | `unicorn-team:qa-security` | sonnet | Code review, security audit, quality gates |
+| DevOps | `unicorn-team:devops` | sonnet | CI/CD, IaC, deployment, monitoring |
+| Polyglot | `unicorn-team:polyglot` | opus | New languages, cross-ecosystem patterns |
 
 ## Step 1: Classify the Task
 
@@ -68,7 +71,7 @@ verifying it passes.**
 
 ```
 ACTION 1: Spawn Developer agent
-  → subagent_type: developer
+  → subagent_type: unicorn-team:developer
   → prompt: Include task, context (file paths), constraints, and:
     "Write the failing test FIRST (RED), then implement (GREEN),
      then refactor (REFACTOR). Run self-verification before returning.
@@ -91,7 +94,7 @@ ACTION 3: Return to user using Response Format (below)
 
 ```
 ACTION 1: Spawn Architect agent
-  → subagent_type: architect
+  → subagent_type: unicorn-team:architect
   → prompt: "Design [feature]. Produce: ADR, API contract (if applicable),
     data model (if applicable), implementation guide for Developer.
     Return: file paths to all design artifacts."
@@ -101,7 +104,7 @@ ACTION 2: GATE — Check Architect result
   → Implementation guide present?            YES → continue   NO → Re-delegate
 
 ACTION 3: Spawn Developer agent
-  → subagent_type: developer
+  → subagent_type: unicorn-team:developer
   → prompt: "Implement [feature] following the design at [paths from ACTION 1].
     Key decisions: [list from ADR]. TDD required — failing test first.
     Return: summary, files changed, test results, coverage."
@@ -109,7 +112,7 @@ ACTION 3: Spawn Developer agent
 ACTION 4: GATE — Check Developer result (same gates as SIMPLE-FEATURE ACTION 2)
 
 ACTION 5: Spawn QA agent
-  → subagent_type: qa-security
+  → subagent_type: unicorn-team:qa-security
   → prompt: "Review implementation of [feature].
     Design: [paths from ACTION 1]. Code: [paths from ACTION 3].
     Run 4-layer review: automated, logic, design, security.
@@ -131,7 +134,7 @@ ACTION 7: Return to user using Response Format
 
 ```
 ACTION 1: Spawn Developer agent
-  → subagent_type: developer
+  → subagent_type: unicorn-team:developer
   → prompt: "Debug and fix: [bug description].
     Use root-cause protocol:
     1. Write a failing test that reproduces the bug
@@ -155,7 +158,7 @@ ACTION 3: Return to user using Response Format
 
 ```
 ACTION 1: Spawn Architect agent
-  → subagent_type: architect
+  → subagent_type: unicorn-team:architect
   → prompt: "Design [system/decision]. Evaluate multiple options.
     Produce ADR with tradeoff analysis, diagrams, and implementation guide.
     Return: file paths to all design artifacts, key decision summary."
@@ -176,7 +179,7 @@ ACTION 3: Return to user using Response Format
 
 ```
 ACTION 1: Spawn QA agent
-  → subagent_type: qa-security
+  → subagent_type: unicorn-team:qa-security
   → prompt: "Review [target]. Apply 4-layer review:
     Layer 1: Automated (tests, coverage, linting)
     Layer 2: Logic (correctness, edge cases, error handling)
@@ -195,7 +198,7 @@ ACTION 2: Return to user using Response Format
 
 ```
 ACTION 1: Spawn DevOps agent
-  → subagent_type: devops
+  → subagent_type: unicorn-team:devops
   → prompt: "[deployment task]. Include:
     - Infrastructure as code (not ClickOps)
     - Health checks and rollback procedures
@@ -217,7 +220,7 @@ ACTION 3: Return to user using Response Format
 
 ```
 ACTION 1: Spawn Polyglot agent
-  → subagent_type: polyglot
+  → subagent_type: unicorn-team:polyglot
   → prompt: "Learn [technology]. Produce quick-reference with:
     - Key concepts mapped to familiar equivalents
     - Idiomatic patterns (not transliterated code)
@@ -227,7 +230,7 @@ ACTION 1: Spawn Polyglot agent
 
 ACTION 2: IF implementation is also needed:
   Spawn Developer agent
-  → subagent_type: developer
+  → subagent_type: unicorn-team:developer
   → prompt: "Implement [feature] in [technology].
     Reference: [path from ACTION 1].
     Follow idiomatic patterns from the reference. TDD required.

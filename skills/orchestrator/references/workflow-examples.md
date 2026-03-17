@@ -16,7 +16,7 @@ USER: "Add a CSV export endpoint for the reports API"
 STEP 1 — Classify: Single endpoint, one domain → SIMPLE-FEATURE pipeline
 
 STEP 2 — ACTION 1: Spawn Developer
-  subagent_type: developer
+  subagent_type: unicorn-team:developer
   prompt: "Implement CSV export endpoint GET /api/reports/{id}/csv.
     Context: existing reports API at src/api/reports.py, report model
     at src/models/report.py. Write the failing test FIRST. Coverage >= 80%.
@@ -59,7 +59,7 @@ STEP 1 — Classify: Multi-service (orders + notifications + WebSocket),
   needs architecture → COMPLEX-FEATURE pipeline
 
 STEP 2 — ACTION 1: Spawn Architect
-  subagent_type: architect
+  subagent_type: unicorn-team:architect
   prompt: "Design real-time notification system for order status updates.
     Context: order service at src/orders/, no existing WebSocket infra.
     Evaluate: WebSocket vs SSE vs polling. Produce ADR, message schema,
@@ -77,7 +77,7 @@ STEP 4 — GATE:
   ✓ Message schema defined
 
 STEP 5 — ACTION 3: Spawn Developer
-  subagent_type: developer
+  subagent_type: unicorn-team:developer
   prompt: "Implement real-time notifications per design at
     design-notifications/. Key decision: WebSocket + Redis pub/sub.
     TDD — write the failing test FIRST. Coverage >= 80%."
@@ -93,7 +93,7 @@ STEP 7 — GATE:
   ✓ No markers
 
 STEP 8 — ACTION 5: Spawn QA
-  subagent_type: qa-security
+  subagent_type: unicorn-team:qa-security
   prompt: "Review real-time notification implementation.
     Design: design-notifications/. Code: src/notifications/, src/orders/events.py.
     Focus: WebSocket auth, message injection, connection handling,
@@ -105,7 +105,7 @@ STEP 9 — QA returns:
    src/notifications/ws_handler.py:45 — missing per-message token validation."
 
 STEP 10 — GATE FAILED. Re-delegate to Developer:
-  subagent_type: developer
+  subagent_type: unicorn-team:developer
   prompt: "Fix QA finding: WebSocket connections need per-message auth.
     File: src/notifications/ws_handler.py:45. Add token validation on
     each incoming message, not just handshake. Write failing test first."
@@ -143,19 +143,19 @@ STEP 2 — ACTION 1: Decompose into independent units:
 STEP 3 — ACTION 2: Spawn 3 agents in ONE message:
 
   Agent call #1:
-    subagent_type: devops
+    subagent_type: unicorn-team:devops
     description: "Auth service monitoring"
     prompt: "Set up Prometheus metrics, health checks, and structured
       logging for auth-service at services/auth/..."
 
   Agent call #2:
-    subagent_type: devops
+    subagent_type: unicorn-team:devops
     description: "Billing service monitoring"
     prompt: "Set up Prometheus metrics, health checks, and structured
       logging for billing-service at services/billing/..."
 
   Agent call #3:
-    subagent_type: devops
+    subagent_type: unicorn-team:devops
     description: "Notification service monitoring"
     prompt: "Set up Prometheus metrics, health checks, and structured
       logging for notification-service at services/notification/..."
@@ -173,7 +173,7 @@ STEP 4 — All three return. GATE each:
 STEP 5 — Agent #3 re-delegation returns. GATE: ✓ All pass.
 
 STEP 6 — Spawn DevOps for overview dashboard (depends on all three):
-  subagent_type: devops
+  subagent_type: unicorn-team:devops
   prompt: "Create shared Grafana dashboard aggregating metrics from
     auth, billing, and notification services. Config files at
     [paths from steps 3-5]."
@@ -195,7 +195,7 @@ USER: "Rewrite the hot-path encoder in Rust for performance"
 STEP 1 — Classify: New language + implementation → NEW-TECH pipeline
 
 STEP 2 — ACTION 1: Spawn Polyglot
-  subagent_type: polyglot
+  subagent_type: unicorn-team:polyglot
   prompt: "Learn Rust for this team. Current stack is Python.
     Focus on: FFI with Python (PyO3), error handling patterns,
     testing idioms, cargo project setup. Produce quick-reference."
@@ -205,7 +205,7 @@ STEP 3 — Polyglot returns:
   Key patterns: PyO3 for FFI, Result<T,E> for errors, #[cfg(test)] modules
 
 STEP 4 — ACTION 2: Spawn Developer (implementation needed)
-  subagent_type: developer
+  subagent_type: unicorn-team:developer
   prompt: "Rewrite encoder at src/encoder/core.py in Rust with PyO3 FFI.
     Reference: docs/rust-quick-reference.md. Follow Rust idioms from
     the reference. TDD — write the failing test FIRST.

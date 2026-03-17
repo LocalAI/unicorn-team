@@ -18,13 +18,13 @@ user-invocable.
 **Protocols** (`.claude/protocols/`) contain reference materials and scripts
 used by agents (not registered as skills).
 
-| Agent | Model | Composable Skills |
-|-------|-------|-------------------|
-| developer | sonnet | self-verification, testing, python, javascript |
-| architect | opus | pattern-transfer, code-reading, technical-debt |
-| qa-security | sonnet | security, testing |
-| devops | sonnet | domain-devops, security |
-| polyglot | opus | language-learning, pattern-transfer, code-reading |
+| Agent (subagent_type) | Model | Composable Skills |
+|-----------------------|-------|-------------------|
+| `unicorn-team:developer` | sonnet | self-verification, testing, python, javascript |
+| `unicorn-team:architect` | opus | pattern-transfer, code-reading, technical-debt |
+| `unicorn-team:qa-security` | sonnet | security, testing |
+| `unicorn-team:devops` | sonnet | domain-devops, security |
+| `unicorn-team:polyglot` | opus | language-learning, pattern-transfer, code-reading |
 
 The orchestrator is a **skill** (not an agent) that runs in the main context
 and coordinates delegation to agents.
@@ -119,11 +119,11 @@ pytest tests/ -v                                              # Run all tests
 
 ```
 Simple question        -> Answer directly
-Implementation         -> Developer agent  (agents/developer.md)
-Architecture decision  -> Architect agent  (agents/architect.md)
-Code review            -> QA agent         (agents/qa-security.md)
-Deployment             -> DevOps agent     (agents/devops.md)
-New language           -> Polyglot agent   (agents/polyglot.md)
+Implementation         -> unicorn-team:developer
+Architecture decision  -> unicorn-team:architect
+Code review            -> unicorn-team:qa-security
+Deployment             -> unicorn-team:devops
+New language           -> unicorn-team:polyglot
 Complex multi-domain   -> Parallel agent delegation
 ```
 

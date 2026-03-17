@@ -13,7 +13,7 @@ Each example shows the full chain of calls, not just one delegation.
 
 ```
 Agent tool call:
-  subagent_type: architect
+  subagent_type: unicorn-team:architect
   description: "Design JWT auth system"
   prompt: |
     Task: Design JWT authentication for a multi-tenant SaaS application.
@@ -48,7 +48,7 @@ Agent tool call:
 
 ```
 Agent tool call:
-  subagent_type: developer
+  subagent_type: unicorn-team:developer
   description: "Implement JWT auth with TDD"
   prompt: |
     Task: Implement JWT authentication service following the architecture design.
@@ -83,7 +83,7 @@ Agent tool call:
 
 ```
 Agent tool call:
-  subagent_type: qa-security
+  subagent_type: unicorn-team:qa-security
   description: "Security review JWT auth"
   prompt: |
     Task: Security review of JWT authentication implementation.
@@ -122,7 +122,7 @@ Agent tool call:
 
 ```
 Agent tool call:
-  subagent_type: developer
+  subagent_type: unicorn-team:developer
   description: "Fix post-reset login bug"
   prompt: |
     Task: Debug and fix: users cannot log in after password reset.
@@ -168,7 +168,7 @@ Agent tool call:
 
 ```
 Agent tool call:
-  subagent_type: architect
+  subagent_type: unicorn-team:architect
   description: "Design user dashboard feature"
   prompt: |
     Task: Design the user dashboard feature. API contract needed for
@@ -193,7 +193,7 @@ Agent tool call:
 
 ```
 Agent tool call #1:
-  subagent_type: developer
+  subagent_type: unicorn-team:developer
   description: "Implement dashboard backend"
   prompt: |
     Task: Implement dashboard REST API and WebSocket handlers.
@@ -202,7 +202,7 @@ Agent tool call #1:
     Expected output: files, test results, coverage.
 
 Agent tool call #2:
-  subagent_type: developer
+  subagent_type: unicorn-team:developer
   description: "Implement dashboard frontend"
   prompt: |
     Task: Implement dashboard UI components and WebSocket client.
@@ -211,7 +211,7 @@ Agent tool call #2:
     Expected output: files, test results, coverage.
 
 Agent tool call #3:
-  subagent_type: devops
+  subagent_type: unicorn-team:devops
   description: "Set up dashboard pipeline"
   prompt: |
     Task: Add CI pipeline stage for dashboard service. WebSocket
@@ -227,7 +227,7 @@ All three return. GATE each independently.
 
 ```
 Agent tool call:
-  subagent_type: qa-security
+  subagent_type: unicorn-team:qa-security
   description: "Review dashboard integration"
   prompt: |
     Task: Review combined dashboard implementation.
@@ -258,7 +258,7 @@ GATE FAILED: Coverage 65% < 80% required.
 Re-delegate to Developer:
 
 Agent tool call:
-  subagent_type: developer
+  subagent_type: unicorn-team:developer
   description: "Add tests for coverage gap"
   prompt: |
     Task: Increase test coverage from 65% to >= 80%.
