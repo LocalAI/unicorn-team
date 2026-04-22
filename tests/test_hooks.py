@@ -19,6 +19,7 @@ SCRIPTS_DIR = PROJECT_ROOT / "scripts"
 
 # Valid Claude Code hook events
 VALID_HOOK_EVENTS = {
+    "SessionStart",
     "PreToolUse",
     "PostToolUse",
     "Notification",
