@@ -101,6 +101,51 @@ ADRs: {relevant decisions}
 Checklist: {applicable items}
 ```
 
+## Operation: `deviation-check`
+
+**Purpose:** Compare what was just implemented against documentation. Report-only — never write changes.
+
+**Input (from delegation prompt):**
+- `Target repo`: repo key from manifest
+- `Summary`: what was implemented (from pipeline result)
+- `Files changed`: list of modified/created files
+- `Tests`: count and coverage from pipeline
+- `Docs context used`: the context-read output that was passed to agents in Step 1.5
+
+**Procedure:**
+1. Read the docs context that was provided to agents (passed in the prompt)
+2. Read the actual files that were changed in the source repo
+3. Compare: do the changes align with documented architecture, patterns, and phase guides?
+4. Check checklists in `{directories.checklists}` — are any items now completable?
+5. Check phase docs in `{directories.phases}` — should completion % be updated?
+6. Check reference docs (API shapes, event types, etc.) — do they need new entries?
+
+**Output:** Deviation report with three sections:
+
+```
+## Docs Deviation Report ({project name} — {repo key})
+
+### Checklist Updates
+- `{file path}` line {N}: `[ ] {item}` — now complete, mark `[x]`
+[or: "None — no checklist items affected."]
+
+### Docs Needing Update
+- `{file path}`: {what needs to change and why}
+[or: "None — docs are current."]
+
+### No Action Needed
+- `{file path}`: Still accurate
+```
+
+If all three sections would say "None," return:
+```
+## Docs Deviation Report ({project name} — {repo key})
+
+No deviations found. Documentation is current with this implementation.
+```
+
+**Important:** Do NOT make any changes to docs files. Report only. The orchestrator will ask the user for approval before applying updates.
+
 ## Operation: `whats-next [repo]`
 
 **Purpose:** Determine next work items, blockers, and priorities.
