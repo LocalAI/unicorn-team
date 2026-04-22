@@ -37,6 +37,7 @@ the `unicorn-team:` prefix when specifying `subagent_type`.
 | QA | `unicorn-team:qa-security` | sonnet | Code review, security audit, quality gates |
 | DevOps | `unicorn-team:devops` | sonnet | CI/CD, IaC, deployment, monitoring |
 | Polyglot | `unicorn-team:polyglot` | opus | New languages, cross-ecosystem patterns |
+| Platform-Docs | `unicorn-team:platform-docs` | opus | Docs context, deviation checks, current-state audits |
 
 ## Step 1: Classify the Task
 
