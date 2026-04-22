@@ -171,14 +171,67 @@ No deviations found. Documentation is current with this implementation.
 
 ## Operation: `check-sync`
 
-**Purpose:** Find internal inconsistencies in the docs repo.
+**Purpose:** Find internal inconsistencies in the docs repo AND docs-vs-code drift across all repos in the manifest.
 
 **Procedure:**
+
+### Dimension 1: Internal Consistency
+
 1. Validate all cross-references between documents (broken links)
 2. Check architecture docs vs implementation guides for contradictions
 3. Check ADR consistency (superseded ADRs still referenced as current)
 4. Check technical constants (thresholds, protocols, namespaces)
-5. Return findings directly (do NOT write a report file)
+5. Check terminology consistency across docs
+
+### Dimension 2: Docs-vs-Code Drift
+
+For each repo in the manifest:
+1. Read the repo's key source files and recent git log (`git log --oneline -20`)
+2. Compare against architecture docs, phase guides, and reference docs
+3. Categorize findings:
+   - **Implemented but undocumented** — code exists, docs don't reflect it
+   - **Documented but not implemented** — docs say it exists, code doesn't
+   - **Pattern deviations** — code works differently than documented pattern
+   - **Stale reports** — latest current-state report older than 7 days
+
+**Output:** Return findings directly (do NOT write a report file).
+
+**Report format:**
+```
+# Sync Check Report ({project name})
+
+**Date**: {YYYY-MM-DD}
+**Repos checked**: {list from manifest}
+
+## Internal Consistency
+
+### Critical
+- {issue with file paths}
+
+### Important
+- {issue}
+
+### Minor
+- {issue}
+
+[or: "No internal consistency issues found."]
+
+## Docs-vs-Code Drift
+
+### {repo key}
+- IMPLEMENTED NOT DOCUMENTED: {list or "None"}
+- DOCUMENTED NOT IMPLEMENTED: {list or "None"}
+- PATTERN DEVIATIONS: {list or "None"}
+- REPORT STALENESS: Last report {date} ({N} days ago) [or "No reports"]
+
+[repeat for each repo]
+
+## Summary
+| Dimension | Critical | Important | Minor |
+|-----------|----------|-----------|-------|
+| Internal consistency | {N} | {N} | {N} |
+| Docs-vs-code drift | {N} | {N} | {N} |
+```
 
 ## Operation: `review-proposal [path]`
 
