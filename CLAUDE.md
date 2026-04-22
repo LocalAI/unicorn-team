@@ -1,6 +1,6 @@
 # 10X Developer Unicorn
 
-Agent orchestration system for Claude Code. 5 agents + 14 skills, dual-layer
+Agent orchestration system for Claude Code. 6 agents + 15 skills, dual-layer
 architecture where agents spawn as subprocesses with fresh 200K context windows.
 
 ## Architecture: Agents + Skills
@@ -25,6 +25,7 @@ used by agents (not registered as skills).
 | `unicorn-team:qa-security` | sonnet | security, testing |
 | `unicorn-team:devops` | sonnet | domain-devops, security |
 | `unicorn-team:polyglot` | opus | language-learning, pattern-transfer, code-reading |
+| `unicorn-team:platform-docs` | opus | self-verification, code-reading, technical-debt |
 
 The orchestrator is a **skill** (not an agent) that runs in the main context
 and coordinates delegation to agents.
@@ -125,6 +126,7 @@ Code review            -> unicorn-team:qa-security
 Deployment             -> unicorn-team:devops
 New language           -> unicorn-team:polyglot
 Complex multi-domain   -> Parallel agent delegation
+Platform docs / audit    -> unicorn-team:platform-docs
 ```
 
 ## Architecture Reference
