@@ -58,6 +58,39 @@ IF independent sub-tasks can run parallel  → Pipeline: PARALLEL
 
 When in doubt, prefer the more structured pipeline.
 
+## Step 1.5: Docs Context Enrichment
+
+**Runs after classification, before pipeline execution. Skipped if no active
+platform-docs project or target repo is not in the manifest.**
+
+```
+1. Check if SessionStart context mentions an active platform-docs project
+   NO active project? → Skip Step 1.5.
+
+2. Identify target repo from user's request:
+   Working directory within a manifest repo path?
+   User explicitly names a repo? File paths match a manifest repo?
+   No match? → Skip Step 1.5.
+
+3. Determine context tier from classified pipeline:
+   SIMPLE-FEATURE, BUG-FIX, DEPLOY, NEW-TECH → brief
+   COMPLEX-FEATURE, ARCHITECTURE, REVIEW     → deep
+   PARALLEL                                  → per-unit
+
+4. Spawn platform-docs agent:
+   subagent_type: unicorn-team:platform-docs
+   prompt: "Command: context-read | Tier: [brief|deep]
+     Target repo: [key] | Task summary: [one-line]
+     Project: [name] | Docs path: [path]
+     Manifest: [platform-docs.yaml content]
+     Read operations protocol at:
+     .claude/protocols/platform-docs/references/operations-protocol.md"
+
+5. Store returned context for injection into Step 2 delegation prompts.
+```
+
+If context-read fails or times out, log warning and proceed without docs context.
+
 ## Step 2: Execute the Pipeline
 
 Each pipeline below is a numbered sequence of ACTIONS. Execute them in order.
