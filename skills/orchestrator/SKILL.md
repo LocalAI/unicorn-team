@@ -45,6 +45,7 @@ Read the user's request. Match it to exactly ONE pipeline below.
 ```
 IF simple question (no code needed)        → Answer directly. STOP.
 IF estimation request                      → Run estimation skill. STOP.
+IF platform docs / architecture audit      → Invoke platform-docs skill. STOP.
 IF bug fix                                 → Pipeline: BUG-FIX
 IF feature, < 200 lines, single domain     → Pipeline: SIMPLE-FEATURE
 IF feature, complex OR multi-domain        → Pipeline: COMPLEX-FEATURE
