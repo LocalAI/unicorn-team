@@ -353,7 +353,9 @@ Every Agent tool call MUST include these four sections:
 Task: [One clear objective. What to build/fix/review/design.]
 
 Context: [File paths, design doc paths, prior agent output summaries.
-  Keep under 2K tokens. Pass paths, not contents.]
+  Keep under 2K tokens. Pass paths, not contents.
+  IF Step 1.5 produced docs context, include:
+  Platform docs ([project] — [repo]): {context-read output verbatim}]
 
 Constraints: [TDD required, coverage threshold, technology choices,
   compatibility requirements, security requirements.]
