@@ -57,6 +57,50 @@ The agent reads the project manifest at runtime for repo paths and directory con
 
 **Output:** One report per repo + `{directories.reports}/platform/CURRENT_STATE-{YYYYMMDD-HHMM}.md`
 
+## Operation: `context-read`
+
+**Purpose:** Provide curated architecture context for downstream agents in orchestrator pipelines.
+
+**Two tiers:**
+
+### Brief (~500 tokens)
+
+Return ONLY these four items as concise bullet points:
+1. **Repo health** — from latest current-state report in `{directories.reports}/{repo}/`. If no report exists, say "No prior current-state report."
+2. **Current phase** — read phase docs in `{directories.phases}`, identify which phase this repo is in and approximate completion.
+3. **Critical constraints** — read the entry point doc (default: `CLAUDE.md`) for critical technical notes, gotchas, and warnings that affect this repo.
+4. **Active debt** — count and list DEBT items in `{directories.backlog}` that mention this repo.
+
+### Deep (~1500 tokens, includes all of Brief plus:)
+
+5. **Phase guide summary** — read the current phase's implementation guide and summarize key requirements, acceptance criteria, and implementation patterns in 3-5 bullets.
+6. **Applicable patterns** — read files in the patterns directory for patterns relevant to the task summary. Summarize each in one sentence.
+7. **Relevant ADRs** — read `{directories.decisions}` for ADRs that affect this repo or the task area. List: ADR number, title, decision, key constraint.
+8. **Compliance checklist** — extract checklist items from the current phase doc or checklists directory that apply to this repo.
+
+**Input (from delegation prompt):**
+- `Tier`: `brief` or `deep`
+- `Target repo`: repo key from manifest
+- `Task summary`: one-line description of what the user wants to do
+
+**Output:** Plain text context package. No markdown headers — this will be injected verbatim into another agent's prompt. Use bullet points. Keep brief tier under 500 tokens and deep tier under 1500 tokens.
+
+**Format:**
+```
+Repo: {repo key} ({repo label})
+Health: {summary from latest report or "No prior report"}
+Phase: {phase name} — {completion %}
+Constraints:
+  - {constraint 1}
+  - {constraint 2}
+Debt: {N} items ({list if <= 3, else "see backlog/"})
+[Deep tier only:]
+Phase guide: {summary bullets}
+Patterns: {applicable patterns}
+ADRs: {relevant decisions}
+Checklist: {applicable items}
+```
+
 ## Operation: `whats-next [repo]`
 
 **Purpose:** Determine next work items, blockers, and priorities.
