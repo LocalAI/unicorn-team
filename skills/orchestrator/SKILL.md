@@ -400,7 +400,37 @@ After the final GATE passes, return to the user:
 
 ## Notes
 [Decisions made, tradeoffs taken, follow-up needed]
+
+## Docs Deviation Report
+[If Step 3 found deviations — included automatically]
+[If no deviations: "Docs: Current (no updates needed)"]
 ```
+
+## Step 3: Docs Deviation Report
+
+**Runs after final GATE, before returning to user. Skipped if Step 1.5 did not run.**
+
+```
+1. Spawn platform-docs agent:
+   subagent_type: unicorn-team:platform-docs
+   prompt: "Command: deviation-check | Target repo: [key]
+     Summary: [pipeline result] | Files changed: [list]
+     Tests: [count, coverage] | Docs context used: [Step 1.5 output]
+     Project: [name] | Docs path: [path] | Manifest: [content]
+     Read operations protocol. Report deviations only — do NOT write changes."
+
+2. IF report has Checklist Updates or Docs Needing Update:
+   Append report to response. Add: "Apply docs updates? (yes/no/selective)"
+   WAIT for user response.
+   yes → spawn platform-docs agent to apply changes, commit in docs repo
+   selective → user picks items, agent applies only those
+   no → proceed without changes
+
+3. IF "No deviations found":
+   Add to Notes: "Docs: Current (no updates needed)". No prompt.
+```
+
+If deviation-check fails, skip Step 3. Note: "Docs deviation check skipped."
 
 ## Error Recovery
 
