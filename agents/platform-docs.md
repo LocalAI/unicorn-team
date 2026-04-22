@@ -34,8 +34,10 @@ repository that provides a `platform-docs.yaml` manifest.
 Your delegation prompt includes:
 - **Project name** and **docs repo path**
 - **Full manifest content** (repos, directories, report formats)
-- **Operation** to execute (current-state, whats-next, check-phase, check-sync)
+- **Operation** to execute (current-state, whats-next, check-phase, check-sync, context-read, deviation-check)
 - **Target repo** (if applicable)
+- **Tier** (for context-read: brief or deep)
+- **Implementation summary** (for deviation-check: what was built, files changed, tests)
 
 ## Step 1: Load Project Context
 
@@ -87,8 +89,13 @@ key_recommendations:
 
 ## Integration
 
-This agent is spawned by the `platform-docs` skill or the orchestrator's
-`PLATFORM-DOCS` pipeline. The skill passes project context and manifest
-content in the delegation prompt.
+This agent is spawned in three contexts:
+1. **Platform-docs skill** — user invokes `/platform-docs [command]`; skill passes project context
+2. **Orchestrator Step 1.5** — automatic `context-read` before pipelines targeting documented repos
+3. **Orchestrator Step 3** — automatic `deviation-check` after pipeline completes on documented repos
+
+For context-read: return concise text (no markdown headers) for injection into other agents' prompts.
+For deviation-check: return a deviation report. Do NOT write changes — report only.
 
 See: `.claude/protocols/platform-docs/references/manifest-convention.md`
+See: `.claude/protocols/platform-docs/references/operations-protocol.md`
