@@ -22,7 +22,7 @@ AGENTS_DIR = PROJECT_ROOT / "agents"
 SKILLS_DIR = PROJECT_ROOT / "skills"
 PROTOCOLS_DIR = PROJECT_ROOT / ".claude" / "protocols"
 
-EXPECTED_AGENTS = {"developer", "architect", "qa-security", "devops", "polyglot"}
+EXPECTED_AGENTS = {"developer", "architect", "qa-security", "devops", "polyglot", "platform-docs"}
 VALID_MODELS = {"sonnet", "opus", "haiku"}
 
 
@@ -71,8 +71,8 @@ def test_exactly_5_agents():
     agent_files = find_agent_files()
     agent_names = [f.stem for f in agent_files]
 
-    assert len(agent_files) == 5, (
-        f"Expected 5 agent definitions in agents/, "
+    assert len(agent_files) == 6, (
+        f"Expected 6 agent definitions in agents/, "
         f"found {len(agent_files)}: {agent_names}"
     )
 
