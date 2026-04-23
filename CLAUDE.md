@@ -1,12 +1,12 @@
 # 10X Developer Unicorn
 
 Agent orchestration system for Claude Code. 6 agents + 15 skills, dual-layer
-architecture where agents spawn as subprocesses with fresh 200K context windows.
+architecture where agents spawn as subprocesses with fresh context windows.
 
 ## Architecture: Agents + Skills
 
 **Agents** (`agents/*.md`) are subprocess definitions spawned via the Agent
-tool. Each gets a fresh 200K context window. Agent protocol content is inlined
+tool. Each gets a fresh context window. Agent protocol content is inlined
 directly in the agent definition body to avoid registering as user-facing slash
 commands. Agents live at the plugin root (`agents/`) so the plugin system
 registers them; `.claude/agents` is a symlink for local dev compatibility.
@@ -38,7 +38,7 @@ agents (Agent tool). Never implement complex tasks directly.
 - Route tasks using the orchestrator skill's decision tree
 - Enforce TDD: tests first, always (RED -> GREEN -> REFACTOR)
 - Apply quality gates before returning results
-- Each agent gets fresh 200K context -- use it
+- Each agent gets a fresh context window -- use it
 
 The orchestrator skill (`skills/orchestrator/SKILL.md`) has the full
 routing table, delegation templates, quality gates, and response format.
@@ -132,7 +132,7 @@ Platform docs / audit    -> unicorn-team:platform-docs
 ## Architecture Reference
 
 - `docs/architecture.md` - Agent specs, workflows, delegation design
-- `docs/skills.md` - All 13 skills, composition, and creation guide
+- `docs/skills.md` - All 15 skills, composition, and creation guide
 - `docs/getting-started.md` - Installation and first task walkthrough
 
 ## Repository
