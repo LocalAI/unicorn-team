@@ -32,9 +32,6 @@ if [ ! -f "$DOCS_PATH/platform-docs.yaml" ]; then
     exit 0
 fi
 
-# Count repos in manifest (simple grep)
-REPO_COUNT=$(grep -c '^\s\{2\}\w.*:$' "$DOCS_PATH/platform-docs.yaml" 2>/dev/null || echo "?")
-
 # Find latest platform rollup report
 REPORTS_DIR="$DOCS_PATH/current-state/platform"
 LATEST_REPORT=""
@@ -62,14 +59,14 @@ if [ "$DEBT_COUNT" -gt 0 ]; then
     CTX="$CTX Open debt: $DEBT_COUNT items."
 fi
 
-python3 -c "
-import json
-ctx = '''$CTX'''
+CTX_JSON=$(CTX="$CTX" python3 -c "
+import json, os
 print(json.dumps({
     'continue': True,
     'hookSpecificOutput': {
         'hookEventName': 'SessionStart',
-        'additionalContext': ctx
+        'additionalContext': os.environ['CTX']
     }
 }, indent=2))
-" 2>/dev/null || exit 0
+" 2>/dev/null) || exit 0
+echo "$CTX_JSON"
