@@ -87,18 +87,18 @@ Return ONLY these four items as concise bullet points:
 
 **Format:**
 ```
-Repo: {repo key} ({repo label})
-Health: {summary from latest report or "No prior report"}
-Phase: {phase name} — {completion %}
+Repo: [repo key] ([repo label])
+Health: [summary from latest report or "No prior report"]
+Phase: [phase name] — [completion %]
 Constraints:
-  - {constraint 1}
-  - {constraint 2}
-Debt: {N} items ({list if <= 3, else "see backlog/"})
+  - [constraint 1]
+  - [constraint 2]
+Debt: [N] items ([list if <= 3, else "see backlog/"])
 [Deep tier only:]
-Phase guide: {summary bullets}
-Patterns: {applicable patterns}
-ADRs: {relevant decisions}
-Checklist: {applicable items}
+Phase guide: [summary bullets]
+Patterns: [applicable patterns]
+ADRs: [relevant decisions]
+Checklist: [applicable items]
 ```
 
 ## Operation: `deviation-check`
