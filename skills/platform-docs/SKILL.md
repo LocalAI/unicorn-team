@@ -3,7 +3,7 @@ name: platform-docs
 description: >-
   Platform documentation operations across multiple projects. ALWAYS trigger on
   "platform docs", "current state", "whats next", "check phase", "ADR",
-  "architecture review", "platform status", "check sync", "technical debt backlog",
+  "architecture review", "platform status", "check sync", "check drift", "docs drift", "technical debt backlog",
   "mvp sync", "phase progress", "streaming pattern", "dual mode auth",
   "platform architecture", "switch project", "register project", "docs manifest".
   Use when querying platform architecture, checking implementation status, auditing
@@ -65,7 +65,8 @@ Parse `$ARGUMENTS` and route to the appropriate handler:
 |---------|---------|-------------|
 | `list` | Direct | Show all registered projects |
 | `switch <id>` | Direct | Change active project |
-| `register <id> <path>` | Direct | Add a new project |
+| `register <id> <path>` | Direct | Add a new project (validates manifest) |
+| `unregister <id>` | Direct | Remove a project from registry |
 | `status` | Direct | Show active project health summary |
 | `current-state [repo]` | Agent | Full architecture audit |
 | `current-state-all` | Agent | Parallel audit of all repos |
@@ -74,6 +75,29 @@ Parse `$ARGUMENTS` and route to the appropriate handler:
 | `check-sync` | Agent | Internal docs consistency check |
 | `review-proposal [path]` | Agent | Evaluate feature proposal |
 | (no args / help) | Direct | Show this command list |
+
+### (no arguments)
+
+Display this help message:
+
+```
+Platform Docs — Documentation operations for registered projects.
+
+Commands:
+  list                          Show all registered projects
+  switch <id>                   Change active project
+  register <id> <path>          Add a new project (validates manifest)
+  unregister <id>               Remove a project
+  status                        Show active project health summary
+  current-state [repo]          Full architecture audit (writes report)
+  current-state-all             Parallel audit of all repos
+  whats-next [repo]             Next work items and blockers
+  check-phase [phase] [repo]    Phase readiness verification
+  check-sync                    Docs consistency + docs-vs-code drift
+  review-proposal [path]        Evaluate feature proposal
+
+Active project: {name or "none — run 'register' first"}
+```
 
 ## Direct Operations
 
@@ -99,21 +123,48 @@ Mark active project with `►`.
 
 ### `register <project-id> <path>`
 
-1. Verify `<path>/platform-docs.yaml` exists
-2. Read the manifest — extract `name` field
+1. Verify `<path>/platform-docs.yaml` exists — if not, error: "No manifest at {path}"
+2. Read the manifest and validate:
+   - `name` field present and non-empty
+   - `id` field present and non-empty
+   - `repos` has at least one entry with `path` and `dev_branch`
+   - `directories` has at least `reports` and `architecture`
+   - If validation fails, list which fields are missing
 3. Read or create `~/.claude/platform-docs-registry.json`
-4. Add entry: `"<project-id>": { "path": "<path>", "name": "<name>" }`
-5. If no `active` project set, make this one active
-6. Write the registry
-7. Confirm: "Registered **{name}** as `<project-id>`"
+4. If `<project-id>` already exists, warn: "Project `<id>` already registered. Overwrite? (yes/no)"
+5. Add entry: `"<project-id>": { "path": "<path>", "name": "<name from manifest>" }`
+6. If no `active` project set, make this one active
+7. Write the registry
+8. Confirm: "Registered **{name}** as `<project-id>`"
+
+### `unregister <project-id>`
+
+1. Read `~/.claude/platform-docs-registry.json`
+2. Verify `<project-id>` exists in `projects` — if not, error: "Unknown project: {id}"
+3. Remove the entry from `projects`
+4. If this was the `active` project, clear `active` (set to empty string)
+5. Write the registry
+6. Confirm: "Removed **{name}**. Active project: {new active or 'none'}"
 
 ### `status`
 
 1. Read active project's `platform-docs.yaml`
-2. List all repos with labels
-3. For each repo key, check `{directories.reports}/{repo}/` for latest report
-4. Count items in `{directories.backlog}/`
-5. Display summary table
+2. For each repo, find latest report in `{directories.reports}/{repo key}/`
+3. Count DEBT items in `{directories.backlog}/`
+4. Display:
+
+```
+LocalAI Platform (localai)
+Docs: /path/to/lai-platform-docs
+
+Repos:
+  agentcore          Backend agent, CDK    Last report: 20260415-1200
+  frontend-public    Public frontend       Last report: none
+  frontend-platform  Platform frontend     Last report: 20260415-1200
+  mcp-server         MCP server            Last report: none
+
+Debt: 20 open items
+```
 
 ## Agent Operations
 
