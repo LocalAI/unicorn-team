@@ -8,5 +8,5 @@
   },
   "repository": "https://github.com/aj-geddes/unicorn-team",
   "license": "MIT",
-  "keywords": ["orchestrator", "tdd", "code-review", "architecture", "devops", "security", "estimation", "polyglot"]
+  "keywords": ["orchestrator", "tdd", "code-review", "architecture", "devops", "security", "estimation", "polyglot", "platform-docs", "documentation"]
 }
