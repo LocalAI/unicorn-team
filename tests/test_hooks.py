@@ -8,6 +8,7 @@ Tests ensure:
 """
 
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -83,6 +84,54 @@ def test_hooks_json_references_valid_events():
             f"Unknown hook event '{event_name}' in hooks.json. "
             f"Valid events: {', '.join(sorted(VALID_HOOK_EVENTS))}"
         )
+
+
+def test_platform_context_hook_outputs_valid_json_or_exits_cleanly():
+    """platform-context.sh must output valid JSON or exit 0 with no output."""
+    script = SCRIPTS_DIR / "platform-context.sh"
+
+    if not script.exists():
+        pytest.skip("platform-context.sh not created yet")
+
+    result = subprocess.run(
+        [str(script)],
+        capture_output=True,
+        text=True,
+        timeout=10,
+        cwd=str(PROJECT_ROOT),
+    )
+
+    assert result.returncode == 0, (
+        f"platform-context.sh exited with code {result.returncode}. "
+        f"stderr: {result.stderr}"
+    )
+
+    stdout = result.stdout.strip()
+    if not stdout:
+        return
+
+    try:
+        data = json.loads(stdout)
+    except json.JSONDecodeError as e:
+        pytest.fail(
+            f"platform-context.sh produced non-JSON output: {e}\n"
+            f"Output was: {stdout[:500]}"
+        )
+
+    assert "continue" in data, "Hook output must have 'continue' field"
+    assert data["continue"] is True, "Hook 'continue' must be true"
+    assert "hookSpecificOutput" in data, "Hook output must have 'hookSpecificOutput'"
+
+    hook_output = data["hookSpecificOutput"]
+    assert hook_output.get("hookEventName") == "SessionStart", (
+        "hookEventName must be 'SessionStart'"
+    )
+    assert "additionalContext" in hook_output, (
+        "hookSpecificOutput must have 'additionalContext'"
+    )
+    assert isinstance(hook_output["additionalContext"], str), (
+        "additionalContext must be a string"
+    )
 
 
 def test_git_hooks_preserved_as_scripts():
