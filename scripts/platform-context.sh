@@ -53,7 +53,7 @@ if [ -d "$BACKLOG_DIR" ]; then
     DEBT_COUNT=$(find "$BACKLOG_DIR" -name "DEBT-*.md" -not -name "TEMPLATE*" -not -name "README*" 2>/dev/null | wc -l | tr -d ' ')
 fi
 
-# Build context string
+# Build and output JSON using Python for correct escaping
 CTX="Active platform-docs project: $PROJECT_NAME ($ACTIVE). Docs: $DOCS_PATH."
 if [ -n "$REPORT_DATE" ]; then
     CTX="$CTX Latest rollup: $REPORT_DATE."
@@ -62,15 +62,14 @@ if [ "$DEBT_COUNT" -gt 0 ]; then
     CTX="$CTX Open debt: $DEBT_COUNT items."
 fi
 
-# Escape for JSON
-CTX_ESCAPED=$(echo "$CTX" | sed 's/\\/\\\\/g; s/"/\\"/g')
-
-cat <<EOF
-{
-  "continue": true,
-  "hookSpecificOutput": {
-    "hookEventName": "SessionStart",
-    "additionalContext": "$CTX_ESCAPED"
-  }
-}
-EOF
+python3 -c "
+import json
+ctx = '''$CTX'''
+print(json.dumps({
+    'continue': True,
+    'hookSpecificOutput': {
+        'hookEventName': 'SessionStart',
+        'additionalContext': ctx
+    }
+}, indent=2))
+" 2>/dev/null || exit 0

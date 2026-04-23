@@ -412,6 +412,8 @@ After the final GATE passes, return to the user:
 **Runs after final GATE, before returning to user. Skipped if Step 1.5 did not run.**
 
 ```
+0. Did Step 1.5 run? NO → Skip Step 3 entirely. Go to Response Format.
+
 1. Spawn platform-docs agent:
    subagent_type: unicorn-team:platform-docs
    prompt: "Command: deviation-check | Target repo: [key]
