@@ -46,7 +46,7 @@ Read the user's request. Match it to exactly ONE pipeline below.
 ```
 IF simple question (no code needed)        → Answer directly. STOP.
 IF estimation request                      → Run estimation skill. STOP.
-IF platform docs / architecture audit      → Invoke platform-docs skill. STOP.
+IF platform docs query / docs audit / check-sync → Invoke platform-docs skill. STOP.
 IF bug fix                                 → Pipeline: BUG-FIX
 IF feature, < 200 lines, single domain     → Pipeline: SIMPLE-FEATURE
 IF feature, complex OR multi-domain        → Pipeline: COMPLEX-FEATURE
@@ -65,12 +65,15 @@ When in doubt, prefer the more structured pipeline.
 platform-docs project or target repo is not in the manifest.**
 
 ```
-1. Check if SessionStart context mentions an active platform-docs project
-   NO active project? → Skip Step 1.5.
+1. Check SessionStart additionalContext for "Active platform-docs project:"
+   NOT present? → Skip Step 1.5.
+   Extract: project name, docs path from the context string.
 
-2. Identify target repo from user's request:
-   Working directory within a manifest repo path?
-   User explicitly names a repo? File paths match a manifest repo?
+2. Read the manifest at {docs_path}/platform-docs.yaml.
+   Identify target repo by matching (first match wins):
+   a. User's current working directory starts with a manifest repo path
+   b. User's request explicitly names a repo key (e.g., "agentcore", "frontend")
+   c. File paths in the request are under a manifest repo path
    No match? → Skip Step 1.5.
 
 3. Determine context tier from classified pipeline:
