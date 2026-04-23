@@ -36,6 +36,16 @@ directories:
 
 All paths are relative to the docs repo root. Trailing slash optional.
 
+The following additional directories are optional. If present in the manifest,
+the `context-read` (deep tier) and `deviation-check` operations will use them:
+
+```yaml
+directories:
+  # ... required fields above ...
+  checklists: "checklists/"          # Used by deviation-check for completable items
+  patterns: "implementation/patterns/" # Used by context-read deep tier
+```
+
 ## Optional Fields
 
 ```yaml
@@ -97,4 +107,6 @@ directories:
   decisions: "decisions/"
   backlog: "backlog/"
   architecture: "architecture/"
+  checklists: "checklists/"
+  patterns: "implementation/patterns/"
 ```
