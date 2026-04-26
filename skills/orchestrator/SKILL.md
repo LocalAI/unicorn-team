@@ -438,6 +438,45 @@ After the final GATE passes, return to the user:
 
 If deviation-check fails, skip Step 3. Note: "Docs deviation check skipped."
 
+## Step 4: CEO Quality Control
+
+**Runs after Step 3 (or after final GATE if Step 3 was skipped).
+Applies to COMPLEX-FEATURE, ARCHITECTURE, DEPLOY, and PARALLEL pipelines only.
+Skipped for SIMPLE-FEATURE, BUG-FIX, REVIEW, NEW-TECH.**
+
+```
+1. Spawn CEO QC agent:
+   subagent_type: ceo-quality-controller-agent:1-ceo-quality-control-agent
+   model: opus
+   prompt: "Review ALL changes from this pipeline.
+     Files changed: [list] | Tests: [count, coverage]
+     Pipeline: [which pipeline ran] | Repo: [target repo]
+     Run comprehensive quality validation: architecture compliance,
+     security, code quality, test coverage, integration correctness.
+     Return CEO_APPROVED or CEO_CHANGES_REQUESTED with specific fixes."
+
+2. IF CEO_CHANGES_REQUESTED:
+   Spawn Developer with the specific fixes listed.
+   After Developer returns, re-run CEO QC (max 3 iterations).
+
+3. IF CEO_APPROVED:
+   Proceed to Step 5.
+```
+
+## Step 5: Final Double-Check
+
+**Runs after Step 4 (or after Step 3 if Step 4 was skipped). Always runs.**
+
+```
+Invoke Skill: double-check:double-check
+Model: opus
+Effort: max
+Args: "Verify all changes are complete, correct, and production-ready."
+```
+
+If double-check surfaces issues, spawn Developer to fix them, then re-run
+double-check once. If issues persist, report to user.
+
 ## Error Recovery
 
 | Situation | Action |
@@ -451,21 +490,11 @@ If deviation-check fails, skip Step 3. Note: "Docs deviation check skipped."
 
 ## Context Management
 
-| Keep in main context | Offload to agents |
-|---------------------|-------------------|
-| Pipeline state (which step you're on) | All implementation details |
-| Gate pass/fail status | Full file contents |
-| Paths to artifacts produced | Detailed test output |
-| User's original request | Agent internal reasoning |
+Keep in main context: pipeline state, gate status, artifact paths, user request.
+Offload to agents: implementation details, full file contents, test output, reasoning.
 
 ## Anti-Patterns
 
-| DON'T | DO |
-|-------|-----|
-| Describe a pipeline without executing it | Execute each ACTION, WAIT, GATE, then next |
-| Spawn one agent and return its result directly | Gate-check every agent result before proceeding |
-| Put all agents in one message when they depend on each other | Sequential for dependencies, parallel only for independent work |
-| Skip QA for "simple" changes | QA is optional only for SIMPLE-FEATURE and BUG-FIX pipelines |
-| Pass full file contents to agents | Pass file paths; agents read what they need |
-| Implement code yourself | Always delegate to Developer agent |
-| Retry the same failing prompt unchanged | Add failure context and specific fix guidance |
+Never: describe without executing, skip gates, parallelize dependent work, skip QA
+(except SIMPLE-FEATURE/BUG-FIX), pass file contents (pass paths), implement yourself,
+retry unchanged prompts. Always: gate-check, add failure context on retries.
