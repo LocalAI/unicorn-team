@@ -47,6 +47,7 @@ Read the user's request. Match it to exactly ONE pipeline below.
 IF simple question (no code needed)        → Answer directly. STOP.
 IF estimation request                      → Run estimation skill. STOP.
 IF platform docs query / docs audit / check-sync → Invoke platform-docs skill. STOP.
+IF execute plan / run plan / plan sequence    → Invoke plan-runner skill. STOP.
 IF bug fix                                 → Pipeline: BUG-FIX
 IF feature, < 200 lines, single domain     → Pipeline: SIMPLE-FEATURE
 IF feature, complex OR multi-domain        → Pipeline: COMPLEX-FEATURE
@@ -488,12 +489,10 @@ double-check once. If issues persist, report to user.
 | Agent returns unexpected format | Extract what you can, re-delegate for missing pieces |
 | Task is actually simple | Answer directly, skip pipeline overhead |
 
-## Context Management
+## Context & Anti-Patterns
 
 Keep in main context: pipeline state, gate status, artifact paths, user request.
 Offload to agents: implementation details, full file contents, test output, reasoning.
-
-## Anti-Patterns
 
 Never: describe without executing, skip gates, parallelize dependent work, skip QA
 (except SIMPLE-FEATURE/BUG-FIX), pass file contents (pass paths), implement yourself,

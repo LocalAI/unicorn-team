@@ -85,8 +85,8 @@ def test_all_14_skills_discoverable():
     """
     skill_files = sorted(SKILLS_DIR.glob("*/SKILL.md"))
 
-    assert len(skill_files) == 15, (
-        f"Expected 15 skills at skills/*/SKILL.md, found {len(skill_files)}: "
+    assert len(skill_files) == 16, (
+        f"Expected 16 skills at skills/*/SKILL.md, found {len(skill_files)}: "
         f"{[f.parent.name for f in skill_files]}"
     )
 
