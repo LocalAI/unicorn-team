@@ -51,6 +51,9 @@ External agents use their full registered name.
 | Code Reviewer | `superpowers:code-reviewer` | — | Plan compliance review, coding standards |
 | AI Engineer | `ai-engineer:ai-engineer` | — | AI/ML features, LLM integration, prompt engineering |
 | Performance | `performance-optimizer` | — | Profiling, bottleneck identification, optimization |
+| AWS CDK | `aws-cdk:aws-cdk-development` | — | CDK stacks, constructs, IaC with TypeScript/Python |
+| AWS AgentCore | `aws-agentic-ai:aws-agentic-ai` | — | Bedrock AgentCore: Gateway, Runtime, Memory, MCP targets |
+| AWS Amplify | `aws-amplify:amplify-workflow` | — | Amplify Gen 2: auth, data, storage, branch deploys |
 | CEO QC | `ceo-quality-controller-agent:1-ceo-quality-control-agent` | opus | Final quality gate |
 
 ## Step 1: Classify the Task
@@ -66,6 +69,7 @@ IF bug fix                                 → Pipeline: BUG-FIX
 IF feature, < 200 lines, single domain     → Pipeline: SIMPLE-FEATURE
 IF feature, complex OR multi-domain        → Pipeline: COMPLEX-FEATURE
 IF AI/ML feature / LLM / agent dev         → Pipeline: AI-FEATURE
+IF CDK stack / AWS infrastructure          → Pipeline: AWS-INFRA
 IF architecture/design decision            → Pipeline: ARCHITECTURE
 IF code review / PR review                 → Pipeline: REVIEW
 IF deployment / infrastructure             → Pipeline: DEPLOY
@@ -132,7 +136,8 @@ See `references/pipelines.md` for the full definition.
 | SIMPLE-FEATURE | Developer → Test Engineer → QA-Security | Mandatory | Mandatory |
 | COMPLEX-FEATURE | Architect → Developer → Test Engineer → QA-Security → QA (4-layer) | Mandatory | Mandatory + full review |
 | BUG-FIX | Developer → Test Engineer → QA-Security | Mandatory | Mandatory |
-| AI-FEATURE | Architect → AI Engineer → Test Engineer → QA-Security → QA (4-layer) | Mandatory | Mandatory + full review |
+| AI-FEATURE | Architect → AI Engineer/AgentCore → Test Engineer → QA-Security → QA | Mandatory | Mandatory + full review |
+| AWS-INFRA | AWS CDK → DevOps → QA-Security (infra security) | CDK synth | Mandatory (infra) |
 | ARCHITECTURE | Architect | N/A (no code) | N/A |
 | REVIEW | QA-Security | N/A (review only) | IS the review |
 | DEPLOY | DevOps → QA-Security (infra security) | N/A | Mandatory (infra) |

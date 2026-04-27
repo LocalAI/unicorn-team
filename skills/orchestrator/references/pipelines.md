@@ -173,7 +173,9 @@ ACTION 2: Return to user using Response Format
 
 ## Pipeline: DEPLOY
 
-**When:** CI/CD, infrastructure, deployment, or monitoring.
+**When:** CI/CD pipelines, GitHub Actions workflows, deployment automation,
+monitoring, or observability setup. For CDK/Amplify infrastructure, prefer
+AWS-INFRA pipeline instead.
 
 ```
 ACTION 1: Spawn DevOps agent
@@ -190,7 +192,7 @@ ACTION 2: GATE — Check DevOps result
 
 ACTION 3: Spawn QA agent (infrastructure security review)
   → subagent_type: unicorn-team:qa-security
-  → prompt: "Security review of infrastructure changes.
+  → prompt: "Security review of deployment/infrastructure changes.
     Files: [IaC files from ACTION 1]. Check:
     - IAM permissions follow least privilege
     - No public exposure of internal services
@@ -258,15 +260,22 @@ ACTION 2: GATE — Check Architect result
   → ADR with model selection rationale?  YES → continue   NO → Re-delegate
   → Implementation guide present?        YES → continue   NO → Re-delegate
 
-ACTION 3: Spawn AI Engineer agent
-  → subagent_type: ai-engineer:ai-engineer
-  → prompt: "Implement [AI feature] following design at [paths from ACTION 1].
-    TDD required. Include:
-    - Model integration with proper error handling
-    - Token counting and context management
-    - Response streaming if applicable
-    - Fallback behavior when model is unavailable
-    Return: summary, files changed, test results, coverage."
+ACTION 3: Spawn implementation agent (choose based on scope):
+  IF Bedrock AgentCore work (Gateway, Runtime, MCP targets, agent config):
+    → subagent_type: aws-agentic-ai:aws-agentic-ai
+    → prompt: "Implement [AgentCore feature] following design at [paths].
+      TDD required. Use AgentCore best practices for Gateway, Runtime,
+      Memory, Identity, or MCP target configuration as applicable.
+      Return: summary, files changed, test results, coverage."
+  IF general AI/ML (LLM integration, prompt engineering, embeddings):
+    → subagent_type: ai-engineer:ai-engineer
+    → prompt: "Implement [AI feature] following design at [paths from ACTION 1].
+      TDD required. Include:
+      - Model integration with proper error handling
+      - Token counting and context management
+      - Response streaming if applicable
+      - Fallback behavior when model is unavailable
+      Return: summary, files changed, test results, coverage."
 
 ACTION 4: GATE — Check AI Engineer result (same gates as Developer)
 
@@ -283,6 +292,66 @@ ACTION 6: Spawn QA agent (full 4-layer review)
 ACTION 7: GATE — Check QA result (same as COMPLEX-FEATURE)
 
 ACTION 8: Return to user using Response Format
+```
+
+---
+
+## Pipeline: AWS-INFRA
+
+**When:** CDK stack creation/modification, AWS infrastructure provisioning,
+Amplify configuration, or AgentCore deployment configuration.
+
+```
+ACTION 1: Spawn AWS CDK agent
+  → subagent_type: aws-cdk:aws-cdk-development
+  → prompt: "[infrastructure task]. Follow CDK best practices:
+    - Use L2/L3 constructs where available
+    - Follow cdk-nag rules for security compliance
+    - Include stack outputs for cross-stack references
+    - Write SSM parameters for runtime configuration
+    - Include CDK tests (assertions + snapshot)
+    Return: CDK code, stack outputs, cdk synth result."
+
+ACTION 2: GATE — Check CDK result
+  → cdk synth succeeds?             YES → continue   NO → Re-delegate
+  → CDK tests pass?                 YES → continue   NO → Re-delegate
+  → No cdk-nag suppressions?        YES → continue   NO → Justify or fix
+
+ACTION 3: IF Amplify frontend configuration involved:
+  Spawn AWS Amplify agent
+  → subagent_type: aws-amplify:amplify-workflow
+  → prompt: "[Amplify task]. Configure:
+    - Auth (Cognito), data models, storage as needed
+    - Branch-based deployments for development/main
+    - Environment variables and backend configuration
+    Return: Amplify config files, deployment verification."
+
+ACTION 4: GATE — Check Amplify result (if ACTION 3 ran)
+
+ACTION 5: Spawn DevOps agent (deployment orchestration)
+  → subagent_type: unicorn-team:devops
+  → prompt: "Deploy infrastructure changes:
+    - Run cdk deploy with appropriate profile and region
+    - Verify stack outputs and SSM parameters
+    - Document rollback: cdk destroy or previous stack version
+    Return: deployment result, verification checks, rollback procedure."
+
+ACTION 6: GATE — Check DevOps result
+  → Deployment succeeded?           YES → continue   NO → Rollback and report
+  → Rollback documented?            YES → continue   NO → Re-delegate
+
+ACTION 7: Spawn QA agent (infrastructure security review)
+  → subagent_type: unicorn-team:qa-security
+  → prompt: "Security review of infrastructure changes.
+    CDK code: [files from ACTION 1]. Deployed resources: [from ACTION 5].
+    Check: IAM least privilege, no public exposure, secrets in Secrets Manager,
+    TLS enabled, VPC/security groups correct, cdk-nag compliance.
+    Return: SECURE or SECURITY_ISSUES with specific fixes."
+
+ACTION 8: GATE — Check QA result
+  → SECURE? YES → continue. NO → Spawn CDK agent with fixes, re-deploy, re-review.
+
+ACTION 9: Return to user using Response Format
 ```
 
 ---
