@@ -121,13 +121,17 @@ pytest tests/ -v                                              # Run all tests
 ```
 Simple question        -> Answer directly
 Implementation         -> unicorn-team:developer
+AI/ML / LLM feature   -> ai-engineer:ai-engineer
 Architecture decision  -> unicorn-team:architect
 Code review            -> unicorn-team:qa-security
+Test verification      -> test-engineer (automatic after every code change)
+Security review        -> unicorn-team:qa-security (automatic after every code change)
 Deployment             -> unicorn-team:devops
 New language           -> unicorn-team:polyglot
 Complex multi-domain   -> Parallel agent delegation
-Platform docs / audit    -> unicorn-team:platform-docs
-Execute plan / sequence  -> plan-runner skill
+Platform docs / audit  -> unicorn-team:platform-docs
+Execute plan           -> plan-runner skill
+Performance            -> performance-optimizer
 ```
 
 ## Architecture Reference

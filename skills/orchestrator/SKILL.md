@@ -5,10 +5,11 @@ description: >-
   "build", "create", "design system", "deploy", "learn new language",
   "refactor", "fix bug", "set up CI", "code review", "how long will this take",
   "estimate", "architecture", "add feature", "write code", "debug", "review PR",
-  "set up pipeline", "migrate", "optimize". Use for any multi-step task,
-  implementation request, architecture decision, or quality enforcement.
-  Different from individual agent skills which handle execution -- this skill
-  handles coordination, routing, and quality gates between agents.
+  "set up pipeline", "migrate", "optimize", "AI feature", "LLM integration",
+  "agent development". Use for any multi-step task, implementation request,
+  architecture decision, or quality enforcement. Different from individual
+  agent skills which handle execution -- this skill handles coordination,
+  routing, and quality gates between agents.
 ---
 
 # Orchestrator — Execution Protocol
@@ -20,24 +21,37 @@ protocol, not a description. Follow it literally.
 ## Prime Directives
 
 1. **Delegate, don't implement** — use the Agent tool for all substantial work
-2. **TDD always** — every Developer delegation includes "write the failing test first"
+2. **TDD always** — every implementation delegation includes "write the failing test first"
 3. **Chain, don't wish** — after each agent returns, evaluate, then spawn the next
 4. **Gate between steps** — never proceed to the next agent without checking the prior result
 5. **Parallelize independent work** — use multiple Agent tool calls in ONE message
+6. **Test and secure everything** — every code change gets independent test verification and security review
 
 ## Agent Registry
 
-IMPORTANT: Agents are registered under the plugin namespace. Always use
-the `unicorn-team:` prefix when specifying `subagent_type`.
+IMPORTANT: Use exact `subagent_type` values. Plugin agents use `unicorn-team:` prefix.
+External agents use their full registered name.
+
+### Plugin Agents (unicorn-team)
 
 | Agent | subagent_type | Model | Use For |
 |-------|--------------|-------|---------|
 | Developer | `unicorn-team:developer` | sonnet | Code, tests, bug fixes, refactoring |
 | Architect | `unicorn-team:architect` | opus | ADRs, API contracts, system design |
-| QA | `unicorn-team:qa-security` | sonnet | Code review, security audit, quality gates |
+| QA-Security | `unicorn-team:qa-security` | sonnet | Code review, security audit, quality gates |
 | DevOps | `unicorn-team:devops` | sonnet | CI/CD, IaC, deployment, monitoring |
 | Polyglot | `unicorn-team:polyglot` | opus | New languages, cross-ecosystem patterns |
-| Platform-Docs | `unicorn-team:platform-docs` | opus | Docs context, deviation checks, current-state audits |
+| Platform-Docs | `unicorn-team:platform-docs` | opus | Docs context, deviation checks, audits |
+
+### External Agents
+
+| Agent | subagent_type | Model | Use For |
+|-------|--------------|-------|---------|
+| Test Engineer | `test-engineer` | — | Independent test verification, coverage gaps, test quality |
+| Code Reviewer | `superpowers:code-reviewer` | — | Plan compliance review, coding standards |
+| AI Engineer | `ai-engineer:ai-engineer` | — | AI/ML features, LLM integration, prompt engineering |
+| Performance | `performance-optimizer` | — | Profiling, bottleneck identification, optimization |
+| CEO QC | `ceo-quality-controller-agent:1-ceo-quality-control-agent` | opus | Final quality gate |
 
 ## Step 1: Classify the Task
 
@@ -46,11 +60,12 @@ Read the user's request. Match it to exactly ONE pipeline below.
 ```
 IF simple question (no code needed)        → Answer directly. STOP.
 IF estimation request                      → Run estimation skill. STOP.
-IF platform docs query / docs audit / check-sync → Invoke platform-docs skill. STOP.
-IF execute plan / run plan / plan sequence    → Invoke plan-runner skill. STOP.
+IF platform docs query / docs audit        → Invoke platform-docs skill. STOP.
+IF execute plan / run plan / plan sequence  → Invoke plan-runner skill. STOP.
 IF bug fix                                 → Pipeline: BUG-FIX
 IF feature, < 200 lines, single domain     → Pipeline: SIMPLE-FEATURE
 IF feature, complex OR multi-domain        → Pipeline: COMPLEX-FEATURE
+IF AI/ML feature / LLM / agent dev         → Pipeline: AI-FEATURE
 IF architecture/design decision            → Pipeline: ARCHITECTURE
 IF code review / PR review                 → Pipeline: REVIEW
 IF deployment / infrastructure             → Pipeline: DEPLOY
@@ -73,14 +88,14 @@ platform-docs project or target repo is not in the manifest.**
 2. Read the manifest at {docs_path}/platform-docs.yaml.
    Identify target repo by matching (first match wins):
    a. User's current working directory starts with a manifest repo path
-   b. User's request explicitly names a repo key (e.g., "agentcore", "frontend")
+   b. User's request explicitly names a repo key
    c. File paths in the request are under a manifest repo path
    No match? → Skip Step 1.5.
 
 3. Determine context tier from classified pipeline:
-   SIMPLE-FEATURE, BUG-FIX, DEPLOY, NEW-TECH → brief
-   COMPLEX-FEATURE, ARCHITECTURE, REVIEW     → deep
-   PARALLEL                                  → per-unit
+   SIMPLE-FEATURE, BUG-FIX, DEPLOY, NEW-TECH        → brief
+   COMPLEX-FEATURE, AI-FEATURE, ARCHITECTURE, REVIEW → deep
+   PARALLEL                                          → per-unit
 
 4. Spawn platform-docs agent:
    subagent_type: unicorn-team:platform-docs
@@ -98,288 +113,66 @@ If context-read fails or times out, log warning and proceed without docs context
 
 ## Step 2: Execute the Pipeline
 
-Each pipeline below is a numbered sequence of ACTIONS. Execute them in order.
+Read the pipeline definition from: `references/pipelines.md`
+
+Each pipeline is a numbered sequence of ACTIONS. Execute them in order.
 **Do not skip steps. Do not combine steps. Do not proceed past a GATE without
 verifying it passes.**
 
----
+**CRITICAL — Mandatory post-code steps:** Every pipeline that produces code
+changes includes `→ MANDATORY: Test Verification + Security Review`. This
+spawns the test-engineer for independent test verification AND qa-security
+for security review. These steps are NEVER skipped, even for simple changes.
+See `references/pipelines.md` for the full definition.
 
-### Pipeline: SIMPLE-FEATURE
+### Pipeline Summary
 
-**When:** Single-domain feature, < 200 lines of new code.
+| Pipeline | Agents Involved | Test Verification | Security Review |
+|----------|----------------|-------------------|-----------------|
+| SIMPLE-FEATURE | Developer → Test Engineer → QA-Security | Mandatory | Mandatory |
+| COMPLEX-FEATURE | Architect → Developer → Test Engineer → QA-Security → QA (4-layer) | Mandatory | Mandatory + full review |
+| BUG-FIX | Developer → Test Engineer → QA-Security | Mandatory | Mandatory |
+| AI-FEATURE | Architect → AI Engineer → Test Engineer → QA-Security → QA (4-layer) | Mandatory | Mandatory + full review |
+| ARCHITECTURE | Architect | N/A (no code) | N/A |
+| REVIEW | QA-Security | N/A (review only) | IS the review |
+| DEPLOY | DevOps → QA-Security (infra security) | N/A | Mandatory (infra) |
+| NEW-TECH | Polyglot → Developer → Test Engineer → QA-Security | Mandatory (if impl) | Mandatory (if impl) |
+| PARALLEL | Multiple → Test Engineer → QA-Security (integration) | Mandatory | Mandatory + integration |
 
-```
-ACTION 1: Spawn Developer agent
-  → subagent_type: unicorn-team:developer
-  → prompt: Include task, context (file paths), constraints, and:
-    "Write the failing test FIRST (RED), then implement (GREEN),
-     then refactor (REFACTOR). Run self-verification before returning.
-     Return: summary, files changed, test results, coverage."
-
-ACTION 2: GATE — Check Developer result
-  → Tests pass?           YES → continue    NO → Re-delegate with failure details
-  → Coverage >= 80%?      YES → continue    NO → Re-delegate asking for more tests
-  → Self-review done?     YES → continue    NO → Re-delegate requesting self-review
-  → No TODO/FIXME/HACK?   YES → continue    NO → Re-delegate requesting cleanup
-
-ACTION 3: Return to user using Response Format (below)
-```
-
----
-
-### Pipeline: COMPLEX-FEATURE
-
-**When:** Multi-domain feature, > 200 lines, needs design before code.
-
-```
-ACTION 1: Spawn Architect agent
-  → subagent_type: unicorn-team:architect
-  → prompt: "Design [feature]. Produce: ADR, API contract (if applicable),
-    data model (if applicable), implementation guide for Developer.
-    Return: file paths to all design artifacts."
-
-ACTION 2: GATE — Check Architect result
-  → ADR exists with alternatives evaluated?  YES → continue   NO → Re-delegate
-  → Implementation guide present?            YES → continue   NO → Re-delegate
-
-ACTION 3: Spawn Developer agent
-  → subagent_type: unicorn-team:developer
-  → prompt: "Implement [feature] following the design at [paths from ACTION 1].
-    Key decisions: [list from ADR]. TDD required — failing test first.
-    Return: summary, files changed, test results, coverage."
-
-ACTION 4: GATE — Check Developer result (same gates as SIMPLE-FEATURE ACTION 2)
-
-ACTION 5: Spawn QA agent
-  → subagent_type: unicorn-team:qa-security
-  → prompt: "Review implementation of [feature].
-    Design: [paths from ACTION 1]. Code: [paths from ACTION 3].
-    Run 4-layer review: automated, logic, design, security.
-    Return: approval or rejection with specific findings."
-
-ACTION 6: GATE — Check QA result
-  → Approved?                        YES → continue
-  → Rejected with fixable issues?    → Spawn Developer with QA feedback, then re-run QA
-  → Rejected with design issues?     → Spawn Architect with QA feedback, restart from ACTION 3
-
-ACTION 7: Return to user using Response Format
-```
-
----
-
-### Pipeline: BUG-FIX
-
-**When:** Something is broken and needs fixing.
-
-```
-ACTION 1: Spawn Developer agent
-  → subagent_type: unicorn-team:developer
-  → prompt: "Debug and fix: [bug description].
-    Use root-cause protocol:
-    1. Write a failing test that reproduces the bug
-    2. Form hypothesis about root cause
-    3. Fix the root cause (not the symptom)
-    4. Verify the failing test now passes
-    5. Check for similar bugs nearby
-    6. Run full test suite — no regressions
-    Return: root cause, fix summary, files changed, test results."
-
-ACTION 2: GATE — Check Developer result (same gates as SIMPLE-FEATURE ACTION 2)
-
-ACTION 3: Return to user using Response Format
-```
-
----
-
-### Pipeline: ARCHITECTURE
-
-**When:** Design decision, system design, or tradeoff analysis needed.
-
-```
-ACTION 1: Spawn Architect agent
-  → subagent_type: unicorn-team:architect
-  → prompt: "Design [system/decision]. Evaluate multiple options.
-    Produce ADR with tradeoff analysis, diagrams, and implementation guide.
-    Return: file paths to all design artifacts, key decision summary."
-
-ACTION 2: GATE — Check Architect result
-  → Multiple options evaluated?    YES → continue   NO → Re-delegate
-  → Tradeoffs explicit?            YES → continue   NO → Re-delegate
-  → Implementation guidance given? YES → continue   NO → Re-delegate
-
-ACTION 3: Return to user using Response Format
-```
-
----
-
-### Pipeline: REVIEW
-
-**When:** Code review, PR review, or security audit.
-
-```
-ACTION 1: Spawn QA agent
-  → subagent_type: unicorn-team:qa-security
-  → prompt: "Review [target]. Apply 4-layer review:
-    Layer 1: Automated (tests, coverage, linting)
-    Layer 2: Logic (correctness, edge cases, error handling)
-    Layer 3: Design (SRP, complexity, coupling)
-    Layer 4: Security (inputs, auth, data handling, OWASP Top 10)
-    Return: approval/rejection, findings by severity, specific file:line references."
-
-ACTION 2: Return to user using Response Format
-```
-
----
-
-### Pipeline: DEPLOY
-
-**When:** CI/CD, infrastructure, deployment, or monitoring.
-
-```
-ACTION 1: Spawn DevOps agent
-  → subagent_type: unicorn-team:devops
-  → prompt: "[deployment task]. Include:
-    - Infrastructure as code (not ClickOps)
-    - Health checks and rollback procedures
-    - Security hardening
-    Return: files created, deployment steps, rollback procedure."
-
-ACTION 2: GATE — Check DevOps result
-  → IaC files present (not manual steps)?  YES → continue   NO → Re-delegate
-  → Rollback procedure documented?         YES → continue   NO → Re-delegate
-
-ACTION 3: Return to user using Response Format
-```
-
----
-
-### Pipeline: NEW-TECH
-
-**When:** Learning a new language, framework, or technology.
-
-```
-ACTION 1: Spawn Polyglot agent
-  → subagent_type: unicorn-team:polyglot
-  → prompt: "Learn [technology]. Produce quick-reference with:
-    - Key concepts mapped to familiar equivalents
-    - Idiomatic patterns (not transliterated code)
-    - Tooling setup (build, test, lint, format)
-    - Common pitfalls
-    Return: reference document path, key patterns summary."
-
-ACTION 2: IF implementation is also needed:
-  Spawn Developer agent
-  → subagent_type: unicorn-team:developer
-  → prompt: "Implement [feature] in [technology].
-    Reference: [path from ACTION 1].
-    Follow idiomatic patterns from the reference. TDD required.
-    Return: summary, files changed, test results, coverage."
-
-ACTION 3: GATE — Check Developer result (if ACTION 2 ran)
-
-ACTION 4: Return to user using Response Format
-```
-
----
-
-### Pipeline: PARALLEL
-
-**When:** Task decomposes into 2+ independent sub-tasks that don't depend on
-each other's output.
-
-```
-ACTION 1: Decompose the task into independent units.
-  List them explicitly:
-    - Unit A: [description] → [agent type]
-    - Unit B: [description] → [agent type]
-    - Unit C: [description] → [agent type]
-
-ACTION 2: Spawn ALL independent agents in ONE message.
-  ┌─────────────────────────────────────────────────────┐
-  │ CRITICAL: Use multiple Agent tool calls in a SINGLE │
-  │ response message. This is how parallel execution    │
-  │ works — multiple tool calls, one message.           │
-  └─────────────────────────────────────────────────────┘
-  Each Agent call gets its own:
-  → subagent_type, prompt, description
-
-ACTION 3: GATE — Check ALL results before proceeding.
-  All passed? → continue
-  Some failed? → Re-delegate only the failed units
-
-ACTION 4: IF integration review needed:
-  Spawn QA agent to review the combined result
-
-ACTION 5: Return to user using Response Format
-```
-
-**Parallel + Sequential Hybrid Example:**
-```
-Architect produces design (sequential — others depend on it)
-    ↓
-Developer (backend) + Developer (frontend) + DevOps (pipeline)
-    ↓  (all three in ONE message — they're independent)
-QA reviews combined result (sequential — depends on all three)
-```
-
-Execute this as:
-1. Spawn Architect, WAIT for result
-2. Spawn Developer + Developer + DevOps in ONE message (3 Agent tool calls)
-3. WAIT for all three
-4. Spawn QA with all results
-
----
-
-## GATE Protocol
-
-Every GATE follows this procedure:
+### GATE Protocol
 
 ```
 1. Read the agent's returned result
 2. Check each gate condition (listed in the pipeline step)
-3. IF all pass:
-   → Log "GATE PASSED" and proceed to next ACTION
-4. IF any fail:
-   → Identify which conditions failed
-   → Spawn the SAME agent with:
-     - Original task
-     - Specific feedback: "Gate failed: [condition]. Fix: [what to do]."
-   → Re-check after agent returns
-5. IF gate fails 3 times on the same condition:
-   → STOP. Report to user: "[Agent] failed gate [condition] 3 times.
-     Last result: [summary]. User decision needed."
+3. IF all pass: → Log "GATE PASSED" and proceed
+4. IF any fail: → Re-delegate with specific feedback
+5. IF gate fails 3 times: → STOP, report to user
 ```
 
-## Delegation Prompt Template
+### Delegation Prompt Template
 
 Every Agent tool call MUST include these four sections:
 
 ```
-Task: [One clear objective. What to build/fix/review/design.]
-
-Context: [File paths, design doc paths, prior agent output summaries.
-  Keep under 2K tokens. Pass paths, not contents.
+Task: [One clear objective.]
+Context: [File paths, prior agent output summaries.
   IF Step 1.5 produced docs context, include:
   Platform docs ([project] — [repo]): {context-read output verbatim}]
-
-Constraints: [TDD required, coverage threshold, technology choices,
-  compatibility requirements, security requirements.]
-
-Expected output: [Specific deliverables. File paths, test results,
-  approval/rejection, coverage numbers.]
+Constraints: [TDD required, coverage threshold, security requirements.]
+Expected output: [Specific deliverables.]
 ```
 
-## TDD Enforcement
+### TDD Enforcement
 
-Every Developer delegation MUST include this line in the prompt:
+Every Developer and AI Engineer delegation MUST include:
 > "Write the failing test FIRST. Do not write implementation code until
 > the test exists and fails."
 
-If a Developer returns results without test evidence, GATE fails automatically.
+If an agent returns results without test evidence, GATE fails automatically.
 
 ## Response Format
 
-After the final GATE passes, return to the user:
+After the final pipeline GATE passes, return to the user:
 
 ```markdown
 ## Summary
@@ -395,10 +188,13 @@ After the final GATE passes, return to the user:
 - X tests added/modified
 - Coverage: XX%
 - All passing: yes/no
+- Test Engineer verification: passed/failed
 
 ## Quality Gates
 - [x] Tests pass
 - [x] Coverage >= 80%
+- [x] Test Engineer verified test quality
+- [x] Security review passed
 - [x] Self-review complete
 - [x] No TODO/FIXME/HACK markers
 - [x] QA review passed (if applicable)
@@ -408,15 +204,14 @@ After the final GATE passes, return to the user:
 
 ## Docs Deviation Report
 [If Step 3 found deviations — included automatically]
-[If no deviations: "Docs: Current (no updates needed)"]
 ```
 
 ## Step 3: Docs Deviation Report
 
-**Runs after final GATE, before returning to user. Skipped if Step 1.5 did not run.**
+**Runs after final GATE, before Step 4. Skipped if Step 1.5 did not run.**
 
 ```
-0. Did Step 1.5 run? NO → Skip Step 3 entirely. Go to Response Format.
+0. Did Step 1.5 run? NO → Skip to Step 4.
 
 1. Spawn platform-docs agent:
    subagent_type: unicorn-team:platform-docs
@@ -426,57 +221,45 @@ After the final GATE passes, return to the user:
      Project: [name] | Docs path: [path] | Manifest: [content]
      Read operations protocol. Report deviations only — do NOT write changes."
 
-2. IF report has Checklist Updates or Docs Needing Update:
-   Append report to response. Add: "Apply docs updates? (yes/no/selective)"
-   WAIT for user response.
-   yes → spawn platform-docs agent to apply changes, commit in docs repo
-   selective → user picks items, agent applies only those
-   no → proceed without changes
+2. IF deviations found:
+   Append to response. Add: "Apply docs updates? (yes/no/selective)"
+   WAIT for user. Apply as requested.
 
-3. IF "No deviations found":
-   Add to Notes: "Docs: Current (no updates needed)". No prompt.
+3. IF no deviations: Add to Notes: "Docs: Current (no updates needed)."
 ```
 
-If deviation-check fails, skip Step 3. Note: "Docs deviation check skipped."
+If deviation-check fails, skip. Note: "Docs deviation check skipped."
 
 ## Step 4: CEO Quality Control
 
-**Runs after Step 3 (or after final GATE if Step 3 was skipped).
-Applies to COMPLEX-FEATURE, ARCHITECTURE, DEPLOY, and PARALLEL pipelines only.
-Skipped for SIMPLE-FEATURE, BUG-FIX, REVIEW, NEW-TECH.**
+**Runs after Step 3. Applies to COMPLEX-FEATURE, AI-FEATURE, ARCHITECTURE,
+DEPLOY, and PARALLEL pipelines. Skipped for SIMPLE-FEATURE, BUG-FIX,
+REVIEW, NEW-TECH.**
 
 ```
 1. Spawn CEO QC agent:
    subagent_type: ceo-quality-controller-agent:1-ceo-quality-control-agent
    model: opus
-   prompt: "Review ALL changes from this pipeline.
-     Files changed: [list] | Tests: [count, coverage]
-     Pipeline: [which pipeline ran] | Repo: [target repo]
-     Run comprehensive quality validation: architecture compliance,
-     security, code quality, test coverage, integration correctness.
+   prompt: "Review ALL changes. Files: [list] | Tests: [count, coverage]
+     Pipeline: [name] | Repo: [target]
+     Validate: architecture, security, quality, tests, integration.
      Return CEO_APPROVED or CEO_CHANGES_REQUESTED with specific fixes."
 
-2. IF CEO_CHANGES_REQUESTED:
-   Spawn Developer with the specific fixes listed.
-   After Developer returns, re-run CEO QC (max 3 iterations).
-
-3. IF CEO_APPROVED:
-   Proceed to Step 5.
+2. CEO_CHANGES_REQUESTED → Developer fixes → re-review (max 3 iterations).
+3. CEO_APPROVED → Step 5.
 ```
 
 ## Step 5: Final Double-Check
 
-**Runs after Step 4 (or after Step 3 if Step 4 was skipped). Always runs.**
+**Runs after Step 4 (or Step 3 if Step 4 skipped). Always runs.**
 
 ```
 Invoke Skill: double-check:double-check
-Model: opus
-Effort: max
+Model: opus | Effort: max
 Args: "Verify all changes are complete, correct, and production-ready."
 ```
 
-If double-check surfaces issues, spawn Developer to fix them, then re-run
-double-check once. If issues persist, report to user.
+Issues found → Developer fixes → re-check once. Persist → report to user.
 
 ## Error Recovery
 
@@ -486,7 +269,6 @@ double-check once. If issues persist, report to user.
 | Agent fails gate 2nd time | Re-delegate with more context and constraints |
 | Agent fails gate 3rd time | STOP, report to user, ask for direction |
 | Requirements unclear | STOP, ask user specific questions, do NOT guess |
-| Agent returns unexpected format | Extract what you can, re-delegate for missing pieces |
 | Task is actually simple | Answer directly, skip pipeline overhead |
 
 ## Context & Anti-Patterns
@@ -494,6 +276,5 @@ double-check once. If issues persist, report to user.
 Keep in main context: pipeline state, gate status, artifact paths, user request.
 Offload to agents: implementation details, full file contents, test output, reasoning.
 
-Never: describe without executing, skip gates, parallelize dependent work, skip QA
-(except SIMPLE-FEATURE/BUG-FIX), pass file contents (pass paths), implement yourself,
-retry unchanged prompts. Always: gate-check, add failure context on retries.
+Never: describe without executing, skip gates, skip mandatory test/security steps,
+parallelize dependent work, implement yourself, retry unchanged prompts.
